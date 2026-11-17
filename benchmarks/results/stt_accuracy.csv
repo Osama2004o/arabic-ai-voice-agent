@@ -1,0 +1,91 @@
+﻿file,category,model,wer,stt_ms,reference,hypothesis
+msa_clear_01.mp3,"MSA, clear",groq:whisper-large-v3-turbo,0.0,2066.9,أريد معرفة حالة طلبي الأخير من المتجر.,اريد معرفة حالة طلبي الأخير من المتجر.
+msa_clear_02.mp3,"MSA, clear",groq:whisper-large-v3-turbo,0.0,1936.69,ما هي سياسة الاسترجاع المعتمدة لديكم؟,ما هي سياسة الاسترجاع المعتمدة لديكم؟
+msa_clear_03.mp3,"MSA, clear",groq:whisper-large-v3-turbo,0.0,983.52,هل تتوفر خدمة الدفع عند الاستلام في منطقتي؟,هل تتوفر خدمة الدفع عند الاستلام في منطقتي؟
+msa_clear_04.mp3,"MSA, clear",groq:whisper-large-v3-turbo,0.0,737.47,أود تغيير عنوان التوصيل المسجل في حسابي.,اود تغيير عنوان التوصيل المسجل في حسابي.
+msa_clear_05.mp3,"MSA, clear",groq:whisper-large-v3-turbo,0.0,779.63,كيف يمكنني تقديم شكوى بخصوص تأخر الشحنة؟,كيف يمكنني تقديم شكوى بخصوص تأخر الشحنة؟
+msa_clear_06.mp3,"MSA, clear",groq:whisper-large-v3-turbo,0.125,1144.42,شكراً جزيلاً لكم على حسن المعاملة والخدمة الممتازة.,شكرا جزيلا لكم على حصن المعاملة والخدمة الممتازة.
+eg_clear_01.mp3,"Egyptian, clear",groq:whisper-large-v3-turbo,0.1111,539.38,ازاي أقدر أرجع المنتج ده لو طلع مش مناسب؟,ازيي أقدر أرجع المنتج ده لو طلع مش مناسب.
+eg_clear_02.mp3,"Egyptian, clear",groq:whisper-large-v3-turbo,0.75,544.19,الطلب بتاعي لسه ماوصلش لحد دلوقتي وميعاده فات.,الطلب بتاعي لسهي ما أوصلش لحدد الوقت ومعاده فات.
+eg_clear_03.mp3,"Egyptian, clear",groq:whisper-large-v3-turbo,0.0,786.61,عايز أعرف مصاريف الشحن للقاهرة كام؟,عايز أعرف مصاريف الشحن للقاهرة كام؟
+eg_clear_04.mp3,"Egyptian, clear",groq:whisper-large-v3-turbo,0.125,2007.9,هو في خصم لو دفعت بالفيزا بدل الكاش؟,هو في خصم لو دفعت بالفيزا بدل كاش؟
+eg_clear_05.mp3,"Egyptian, clear",groq:whisper-large-v3-turbo,0.0,2289.7,عايز أعدل المقاس قبل ما الشحنة تخرج من المخزن.,عايز أعدل المقاس قبل ما الشحنة تخرج من المخزن.
+eg_clear_06.mp3,"Egyptian, clear",groq:whisper-large-v3-turbo,0.0,1028.32,هل ممكن المندوب يكلمني قبل ما يوصل بنص ساعة؟,هل ممكن المندوب يكلمني قبل ما يوصل بنص ساعة؟
+eg_clear_07.mp3,"Egyptian, clear",groq:whisper-large-v3-turbo,0.125,876.68,أنا استلمت منتج غلط وعايز أبدله بالمنتج الصح.,انا استلمت منتج غلط وعايز أبدله بالمنتج الصحي.
+eg_clear_08.mp3,"Egyptian, clear",groq:whisper-large-v3-turbo,0.1429,760.84,لو سمحت محتاج فاتورة ضريبية باسم الشركة.,لو سمحت محتاج فتورة ضريبية باسم الشركة.
+eg_slang_01.mp3,Egyptian informal / slang,groq:whisper-large-v3-turbo,0.375,522.7,يا ريس الحوار طول أوي والأوردر لسه مجاش.,يا ريس الحوار طول أو والأورادر لسهم مجاش.
+eg_slang_02.mp3,Egyptian informal / slang,groq:whisper-large-v3-turbo,0.5,473.72,طب شوفلي حل في القصة دي بسرعة ونبي.,تب شوف لي حل في القصة تيدي بسرعة ونبي.
+eg_slang_03.mp3,Egyptian informal / slang,groq:whisper-large-v3-turbo,0.3333,515.45,كده تمام أوي خلاص مفيش أي مشكلة يا باشا.,كده تمام او خلاص مفيش اي مشكلة يداشة.
+eg_slang_04.mp3,Egyptian informal / slang,groq:whisper-large-v3-turbo,0.5,1218.99,بقولك إيه هو أنتوا شغالين في الويك إند؟,بقولك ايه هو انتو شغل ينا في الويك اندي؟
+noisy_01.mp3,Noisy background,groq:whisper-large-v3-turbo,0.0909,1255.92,أنا بتكلم من الشارع الصوت مش واضح الشحنة وصلت ولا لسه؟,انا بتكلم من الشارع الصوت مش واضح الشحنة وصلت ولا لسهم.
+noisy_02.mp3,Noisy background,groq:whisper-large-v3-turbo,0.4286,2167.34,عايز ألغي الطلب عشان مسافر النهاردة بليل.,عايز ألغي الطلب عشين مسافر النهاء أردى بليل.
+noisy_03.mp3,Noisy background,groq:whisper-large-v3-turbo,0.5,1133.64,في كود خصم جالي على الموبايل ومش شغال في الأبلكيشن.,في قود خصم جالي على الموبل ومشغال في الأبليكيش.
+noisy_04.mp3,Noisy background,groq:whisper-large-v3-turbo,0.5556,837.87,لو سمحتوا اتأكدوا من رقم التليفون عشان المندوب ميتوهش.,لو سمحت وتأكدوا من رقم تليفون عشين المندوب ميتوش.
+fast_01.mp3,Unclear / mumbled / fast,groq:whisper-large-v3-turbo,7.0,729.43,عايزأعرفالطلبفينبسرعةلوتكرمت.,عايز أعرف الطلب في بسرع، اللو تكرمت.
+fast_02.mp3,Unclear / mumbled / fast,groq:whisper-large-v3-turbo,0.4444,710.08,الاوردر كان مفروض يوصل امبارح ومجاش لحد النهاردة خالص.,الاورادر كان مفروض يوصل انبارح ومجاش لحد النهاي اردخالس؟
+fast_03.mp3,Unclear / mumbled / fast,groq:whisper-large-v3-turbo,0.2,4838.45,في مشكلة في الحساب بتاعي ومش عارف أعمل تسجيل دخول.,في مشكلة في الحساب بتاعي ومشعارف أعمل تسجيل دخول.
+numbers_01.mp3,"Numbers (order IDs, phone numbers)",groq:whisper-large-v3-turbo,0.625,2008.14,رقم طلبي هو تسعة ثمانية أربعة اثنين واحد.,رقم طلبي هو 98421
+numbers_02.mp3,"Numbers (order IDs, phone numbers)",groq:whisper-large-v3-turbo,0.6923,2624.82,رقم موبايلي للتواصل صفر عشرة واحد اثنين ثلاثة أربعة خمسة ستة سبعة ثمانية.,رقم موبايلي للتواصل صف العشر وافد اثنين ثلاث أربع خمس ست سبع ثماني.
+numbers_03.mp3,"Numbers (order IDs, phone numbers)",groq:whisper-large-v3-turbo,0.375,4462.76,المبلغ المطلوب كان ثلاثمائة وخمسين جنيه وخمسين قرش.,المبلغ المطلوب كان 350 جنيه و50 قرش.
+silence_01.wav,Silence / non-speech,groq:whisper-large-v3-turbo,1.0,6347.73,,ترجمة نانسي قنقر
+silence_02.wav,Silence / non-speech,groq:whisper-large-v3-turbo,1.0,2847.49,,ترجمة نانسي قنقر
+msa_clear_01.mp3,"MSA, clear",groq:whisper-large-v3,0.0,1015.07,أريد معرفة حالة طلبي الأخير من المتجر.,أريد معرفة حالة طلبي الأخير من المتجر.
+msa_clear_02.mp3,"MSA, clear",groq:whisper-large-v3,0.0,1027.7,ما هي سياسة الاسترجاع المعتمدة لديكم؟,ما هي سياسة الاسترجاع المعتمدة لديكم؟
+msa_clear_03.mp3,"MSA, clear",groq:whisper-large-v3,0.0,803.19,هل تتوفر خدمة الدفع عند الاستلام في منطقتي؟,هل تتوفر خدمة الدفع عند الاستلام في منطقتي؟
+msa_clear_04.mp3,"MSA, clear",groq:whisper-large-v3,0.0,732.94,أود تغيير عنوان التوصيل المسجل في حسابي.,أود تغيير عنوان التوصيل المسجل في حسابي.
+msa_clear_05.mp3,"MSA, clear",groq:whisper-large-v3,0.0,521.53,كيف يمكنني تقديم شكوى بخصوص تأخر الشحنة؟,كيف يمكنني تقديم شكوى بخصوص تأخر الشحنة؟
+msa_clear_06.mp3,"MSA, clear",groq:whisper-large-v3,0.125,563.27,شكراً جزيلاً لكم على حسن المعاملة والخدمة الممتازة.,شكرا جزيلا لكم على حصن المعاملة والخدمة الممتازة.
+eg_clear_01.mp3,"Egyptian, clear",groq:whisper-large-v3,0.1111,919.92,ازاي أقدر أرجع المنتج ده لو طلع مش مناسب؟,أزئي أقدر أرجع المنتج ده لو طلع مش مناسب؟
+eg_clear_02.mp3,"Egyptian, clear",groq:whisper-large-v3,0.75,2240.09,الطلب بتاعي لسه ماوصلش لحد دلوقتي وميعاده فات.,الطلب بتاعي لسهي ما أوصلش لحدد الوقت ومعاده فات.
+eg_clear_03.mp3,"Egyptian, clear",groq:whisper-large-v3,0.0,2139.92,عايز أعرف مصاريف الشحن للقاهرة كام؟,عايز أعرف مصاريف الشحن للقاهرة كام؟
+eg_clear_04.mp3,"Egyptian, clear",groq:whisper-large-v3,0.0,1011.12,هو في خصم لو دفعت بالفيزا بدل الكاش؟,هو في خصم لو دفعت بالفيزا بدل الكاش؟
+eg_clear_05.mp3,"Egyptian, clear",groq:whisper-large-v3,0.0,876.63,عايز أعدل المقاس قبل ما الشحنة تخرج من المخزن.,عايز أعدل المقاس قبل ما الشحنة تخرج من المخزن.
+eg_clear_06.mp3,"Egyptian, clear",groq:whisper-large-v3,0.0,852.52,هل ممكن المندوب يكلمني قبل ما يوصل بنص ساعة؟,هل ممكن المندوب يكلمني قبل ما يوصل بنص ساعة؟
+eg_clear_07.mp3,"Egyptian, clear",groq:whisper-large-v3,0.125,541.5,أنا استلمت منتج غلط وعايز أبدله بالمنتج الصح.,أنا استلمت منتج غلط وعايز أبدله بالمنتج الصحي.
+eg_clear_08.mp3,"Egyptian, clear",groq:whisper-large-v3,0.0,712.07,لو سمحت محتاج فاتورة ضريبية باسم الشركة.,لو سمحت محتاج فاتورة ضريبية باسم الشركة.
+eg_slang_01.mp3,Egyptian informal / slang,groq:whisper-large-v3,0.25,819.77,يا ريس الحوار طول أوي والأوردر لسه مجاش.,يا ريس الحوار طول أوا والأوردر لسه المجاش.
+eg_slang_02.mp3,Egyptian informal / slang,groq:whisper-large-v3,0.25,2329.3,طب شوفلي حل في القصة دي بسرعة ونبي.,تبشوف لي حل في القصة دي بسرعة ونبي.
+eg_slang_03.mp3,Egyptian informal / slang,groq:whisper-large-v3,0.2222,1084.78,كده تمام أوي خلاص مفيش أي مشكلة يا باشا.,كده تمام أو خلاص، مفيش أي مشكلة يا داشا.
+eg_slang_04.mp3,Egyptian informal / slang,groq:whisper-large-v3,0.375,2216.22,بقولك إيه هو أنتوا شغالين في الويك إند؟,بقولك إيه هو أنتو شغالينا في الويك، أنادي.
+noisy_01.mp3,Noisy background,groq:whisper-large-v3,0.0909,930.64,أنا بتكلم من الشارع الصوت مش واضح الشحنة وصلت ولا لسه؟,أنا بتكلم من الشارع، الصوت مش واضح، الشحنة، وصلت ولا لسهم.
+noisy_02.mp3,Noisy background,groq:whisper-large-v3,0.1429,737.22,عايز ألغي الطلب عشان مسافر النهاردة بليل.,عايز ألغي الطلب عشين مسافر النهاردة بليل.
+noisy_03.mp3,Noisy background,groq:whisper-large-v3,0.5,598.86,في كود خصم جالي على الموبايل ومش شغال في الأبلكيشن.,في كود خصم جالي على الموبيل ومشغال في الأبل كيشة.
+noisy_04.mp3,Noisy background,groq:whisper-large-v3,0.4444,691.9,لو سمحتوا اتأكدوا من رقم التليفون عشان المندوب ميتوهش.,لو سمحت وتأكد من رقم التليفون عشين المندوب ميتوش.
+fast_01.mp3,Unclear / mumbled / fast,groq:whisper-large-v3,7.0,703.1,عايزأعرفالطلبفينبسرعةلوتكرمت.,عايز أعرف اطلب فين بسرعة لو تكرمت.
+fast_02.mp3,Unclear / mumbled / fast,groq:whisper-large-v3,0.5556,1079.08,الاوردر كان مفروض يوصل امبارح ومجاش لحد النهاردة خالص.,ألا أورادر كان مفروض يوصل أنبارح ومجاش لحد النهاير ده خالص؟
+fast_03.mp3,Unclear / mumbled / fast,groq:whisper-large-v3,0.0,2435.38,في مشكلة في الحساب بتاعي ومش عارف أعمل تسجيل دخول.,في مشكلة في الحساب بتاعي ومش عارف أعمل تسجيل دخول.
+numbers_01.mp3,"Numbers (order IDs, phone numbers)",groq:whisper-large-v3,0.625,2047.59,رقم طلبي هو تسعة ثمانية أربعة اثنين واحد.,رقم طلبي هو 98421.
+numbers_02.mp3,"Numbers (order IDs, phone numbers)",groq:whisper-large-v3,0.6923,4939.99,رقم موبايلي للتواصل صفر عشرة واحد اثنين ثلاثة أربعة خمسة ستة سبعة ثمانية.,رقم موبايلي للتواصل صفر 10-1-2-3-4-5-6-7-8
+numbers_03.mp3,"Numbers (order IDs, phone numbers)",groq:whisper-large-v3,0.5,4014.84,المبلغ المطلوب كان ثلاثمائة وخمسين جنيه وخمسين قرش.,المبلغ المطلوب كان 350 جنيه و 50 قرش.
+silence_01.wav,Silence / non-speech,groq:whisper-large-v3,1.0,2752.33,,ترجمة نانسي قنقر
+silence_02.wav,Silence / non-speech,groq:whisper-large-v3,1.0,3819.23,,ترجمة نانسي قنقر
+msa_clear_01.mp3,"MSA, clear",local:faster-whisper-base,0.2857,3456.25,أريد معرفة حالة طلبي الأخير من المتجر.,وريد معرفة حالة طلبية الأخير من المتجر.
+msa_clear_02.mp3,"MSA, clear",local:faster-whisper-base,0.1667,1316.25,ما هي سياسة الاسترجاع المعتمدة لديكم؟,ما هي سيسة الاسترجاع المعتمدة لديكم؟
+msa_clear_03.mp3,"MSA, clear",local:faster-whisper-base,0.625,1195.03,هل تتوفر خدمة الدفع عند الاستلام في منطقتي؟,هل تتوافروا خدمة الدفعي عند الستلام في منطقة تي؟
+msa_clear_04.mp3,"MSA, clear",local:faster-whisper-base,0.4286,1258.65,أود تغيير عنوان التوصيل المسجل في حسابي.,أود تغير عن وان التوصيل المسجل في حسابي.
+msa_clear_05.mp3,"MSA, clear",local:faster-whisper-base,0.4286,1249.44,كيف يمكنني تقديم شكوى بخصوص تأخر الشحنة؟,كيف يمكنني تقدم شكوى بخصوصة آخر الشحنة؟
+msa_clear_06.mp3,"MSA, clear",local:faster-whisper-base,0.625,1394.78,شكراً جزيلاً لكم على حسن المعاملة والخدمة الممتازة.,شكرا جزي لنلكم على حصن المعاملة والفدمة الممتزة.
+eg_clear_01.mp3,"Egyptian, clear",local:faster-whisper-base,0.5556,1264.14,ازاي أقدر أرجع المنتج ده لو طلع مش مناسب؟,ازيي أقدر وارجع المنتجاده لو تلع مش مناسب.
+eg_clear_02.mp3,"Egyptian, clear",local:faster-whisper-base,0.875,1299.91,الطلب بتاعي لسه ماوصلش لحد دلوقتي وميعاده فات.,الطلب بتاعي لسهما أو صلش لحدد الوقت ومعاده فا.
+eg_clear_03.mp3,"Egyptian, clear",local:faster-whisper-base,0.1667,1253.96,عايز أعرف مصاريف الشحن للقاهرة كام؟,عايز أعرف مصريف الشحن للقاهرة كام.
+eg_clear_04.mp3,"Egyptian, clear",local:faster-whisper-base,0.75,1241.4,هو في خصم لو دفعت بالفيزا بدل الكاش؟,هو في خص من لوضف عد بالفيزة بدل كش؟
+eg_clear_05.mp3,"Egyptian, clear",local:faster-whisper-base,0.4444,1278.5,عايز أعدل المقاس قبل ما الشحنة تخرج من المخزن.,عايز عدر المقاصة قبلما الشحنة تخرج من المخزن.
+eg_clear_06.mp3,"Egyptian, clear",local:faster-whisper-base,0.6667,1345.17,هل ممكن المندوب يكلمني قبل ما يوصل بنص ساعة؟,هل ممكن المنضوب يقل لمن يقبل ما يوصل بنصصاعة؟
+eg_clear_07.mp3,"Egyptian, clear",local:faster-whisper-base,0.75,1451.88,أنا استلمت منتج غلط وعايز أبدله بالمنتج الصح.,أنا استلمت من تجارلة وعايز أبداله بالمن تجي الصحي.
+eg_clear_08.mp3,"Egyptian, clear",local:faster-whisper-base,0.5714,1357.27,لو سمحت محتاج فاتورة ضريبية باسم الشركة.,لو سمحت محتاج فتورة باريبية بس مشاركة.
+eg_slang_01.mp3,Egyptian informal / slang,local:faster-whisper-base,0.875,1418.97,يا ريس الحوار طول أوي والأوردر لسه مجاش.,ياريس الحوارط على أول أو رضر لساً مجاش.
+eg_slang_02.mp3,Egyptian informal / slang,local:faster-whisper-base,0.625,1216.08,طب شوفلي حل في القصة دي بسرعة ونبي.,تبشوف ليحل في القصة ID بصرعة ونبي.
+eg_slang_03.mp3,Egyptian informal / slang,local:faster-whisper-base,0.5556,1251.91,كده تمام أوي خلاص مفيش أي مشكلة يا باشا.,كده تماما أو خلاص مفش أي مشكلة يداشة.
+eg_slang_04.mp3,Egyptian informal / slang,local:faster-whisper-base,0.75,1242.7,بقولك إيه هو أنتوا شغالين في الويك إند؟,بقولك ايه وانتو شر إلينا في الوك أنا دي.
+noisy_01.mp3,Noisy background,local:faster-whisper-base,0.5455,1501.69,أنا بتكلم من الشارع الصوت مش واضح الشحنة وصلت ولا لسه؟,أنا بتقل من الشارع السلط مشواضح الشحنة وصلط ولا لسهم.
+noisy_02.mp3,Noisy background,local:faster-whisper-base,0.8571,1364.19,عايز ألغي الطلب عشان مسافر النهاردة بليل.,عايز ألغي طلب عشين مسافرون النهائر دبي ليل.
+noisy_03.mp3,Noisy background,local:faster-whisper-base,0.6,1533.84,في كود خصم جالي على الموبايل ومش شغال في الأبلكيشن.,في كدخص من جالي على الموبل، ومشغال في الأبلكيشة.
+noisy_04.mp3,Noisy background,local:faster-whisper-base,0.6667,1367.26,لو سمحتوا اتأكدوا من رقم التليفون عشان المندوب ميتوهش.,لو سمحة وتأكد من رقم التلفون عشين المندو بميطوش.
+fast_01.mp3,Unclear / mumbled / fast,local:faster-whisper-base,6.0,1231.7,عايزأعرفالطلبفينبسرعةلوتكرمت.,عايز عاري فاطل بفندس رعلو تكرمك.
+fast_02.mp3,Unclear / mumbled / fast,local:faster-whisper-base,0.6667,1531.96,الاوردر كان مفروض يوصل امبارح ومجاش لحد النهاردة خالص.,الأورادر كان مفروضني وصل عمبارح ومجاش لحد نهائر دخالص.
+fast_03.mp3,Unclear / mumbled / fast,local:faster-whisper-base,0.4,1780.47,في مشكلة في الحساب بتاعي ومش عارف أعمل تسجيل دخول.,في مشكلة في الحساب بتاعي ومشعار في أعمل تزجيل دخولاً.
+numbers_01.mp3,"Numbers (order IDs, phone numbers)",local:faster-whisper-base,0.75,1798.56,رقم طلبي هو تسعة ثمانية أربعة اثنين واحد.,رقم طلبيه وتسع فمن يأربع اثنين واحن.
+numbers_02.mp3,"Numbers (order IDs, phone numbers)",local:faster-whisper-base,0.5385,1651.11,رقم موبايلي للتواصل صفر عشرة واحد اثنين ثلاثة أربعة خمسة ستة سبعة ثمانية.,رقم مبايلي للتواصل سيب العشر وافد اثنين ثلاثة أربع خمسة سبعة ثماني.
+numbers_03.mp3,"Numbers (order IDs, phone numbers)",local:faster-whisper-base,0.625,1696.72,المبلغ المطلوب كان ثلاثمائة وخمسين جنيه وخمسين قرش.,المبلغ المطلوب كانة الثلاثينية وخمسينة جنائه وخمسينة قرش.
+silence_01.wav,Silence / non-speech,local:faster-whisper-base,0.0,179.29,,
+silence_02.wav,Silence / non-speech,local:faster-whisper-base,0.0,130.79,,

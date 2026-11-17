@@ -1,0 +1,7 @@
+﻿length_category,word_count,voice,first_chunk_ms,total_synthesis_ms,audio_bytes
+short,4,female,1272.13,1806.24,18864
+short,4,male,5032.72,5906.64,23472
+medium,14,female,2748.01,3568.61,51552
+medium,14,male,5382.8,6571.44,42912
+long,38,female,1527.78,4613.6,86688
+long,38,male,6432.19,15537.25,71280

@@ -1,0 +1,212 @@
+[
+  {
+    "id": "msa_clear_01",
+    "file": "msa_clear_01.mp3",
+    "category": "MSA, clear",
+    "text": "أريد معرفة حالة طلبي الأخير من المتجر.",
+    "is_synthetic": true
+  },
+  {
+    "id": "msa_clear_02",
+    "file": "msa_clear_02.mp3",
+    "category": "MSA, clear",
+    "text": "ما هي سياسة الاسترجاع المعتمدة لديكم؟",
+    "is_synthetic": true
+  },
+  {
+    "id": "msa_clear_03",
+    "file": "msa_clear_03.mp3",
+    "category": "MSA, clear",
+    "text": "هل تتوفر خدمة الدفع عند الاستلام في منطقتي؟",
+    "is_synthetic": true
+  },
+  {
+    "id": "msa_clear_04",
+    "file": "msa_clear_04.mp3",
+    "category": "MSA, clear",
+    "text": "أود تغيير عنوان التوصيل المسجل في حسابي.",
+    "is_synthetic": true
+  },
+  {
+    "id": "msa_clear_05",
+    "file": "msa_clear_05.mp3",
+    "category": "MSA, clear",
+    "text": "كيف يمكنني تقديم شكوى بخصوص تأخر الشحنة؟",
+    "is_synthetic": true
+  },
+  {
+    "id": "msa_clear_06",
+    "file": "msa_clear_06.mp3",
+    "category": "MSA, clear",
+    "text": "شكراً جزيلاً لكم على حسن المعاملة والخدمة الممتازة.",
+    "is_synthetic": true
+  },
+  {
+    "id": "eg_clear_01",
+    "file": "eg_clear_01.mp3",
+    "category": "Egyptian, clear",
+    "text": "ازاي أقدر أرجع المنتج ده لو طلع مش مناسب؟",
+    "is_synthetic": true
+  },
+  {
+    "id": "eg_clear_02",
+    "file": "eg_clear_02.mp3",
+    "category": "Egyptian, clear",
+    "text": "الطلب بتاعي لسه ماوصلش لحد دلوقتي وميعاده فات.",
+    "is_synthetic": true
+  },
+  {
+    "id": "eg_clear_03",
+    "file": "eg_clear_03.mp3",
+    "category": "Egyptian, clear",
+    "text": "عايز أعرف مصاريف الشحن للقاهرة كام؟",
+    "is_synthetic": true
+  },
+  {
+    "id": "eg_clear_04",
+    "file": "eg_clear_04.mp3",
+    "category": "Egyptian, clear",
+    "text": "هو في خصم لو دفعت بالفيزا بدل الكاش؟",
+    "is_synthetic": true
+  },
+  {
+    "id": "eg_clear_05",
+    "file": "eg_clear_05.mp3",
+    "category": "Egyptian, clear",
+    "text": "عايز أعدل المقاس قبل ما الشحنة تخرج من المخزن.",
+    "is_synthetic": true
+  },
+  {
+    "id": "eg_clear_06",
+    "file": "eg_clear_06.mp3",
+    "category": "Egyptian, clear",
+    "text": "هل ممكن المندوب يكلمني قبل ما يوصل بنص ساعة؟",
+    "is_synthetic": true
+  },
+  {
+    "id": "eg_clear_07",
+    "file": "eg_clear_07.mp3",
+    "category": "Egyptian, clear",
+    "text": "أنا استلمت منتج غلط وعايز أبدله بالمنتج الصح.",
+    "is_synthetic": true
+  },
+  {
+    "id": "eg_clear_08",
+    "file": "eg_clear_08.mp3",
+    "category": "Egyptian, clear",
+    "text": "لو سمحت محتاج فاتورة ضريبية باسم الشركة.",
+    "is_synthetic": true
+  },
+  {
+    "id": "eg_slang_01",
+    "file": "eg_slang_01.mp3",
+    "category": "Egyptian informal / slang",
+    "text": "يا ريس الحوار طول أوي والأوردر لسه مجاش.",
+    "is_synthetic": true
+  },
+  {
+    "id": "eg_slang_02",
+    "file": "eg_slang_02.mp3",
+    "category": "Egyptian informal / slang",
+    "text": "طب شوفلي حل في القصة دي بسرعة ونبي.",
+    "is_synthetic": true
+  },
+  {
+    "id": "eg_slang_03",
+    "file": "eg_slang_03.mp3",
+    "category": "Egyptian informal / slang",
+    "text": "كده تمام أوي خلاص مفيش أي مشكلة يا باشا.",
+    "is_synthetic": true
+  },
+  {
+    "id": "eg_slang_04",
+    "file": "eg_slang_04.mp3",
+    "category": "Egyptian informal / slang",
+    "text": "بقولك إيه هو أنتوا شغالين في الويك إند؟",
+    "is_synthetic": true
+  },
+  {
+    "id": "noisy_01",
+    "file": "noisy_01.mp3",
+    "category": "Noisy background",
+    "text": "أنا بتكلم من الشارع الصوت مش واضح الشحنة وصلت ولا لسه؟",
+    "is_synthetic": true
+  },
+  {
+    "id": "noisy_02",
+    "file": "noisy_02.mp3",
+    "category": "Noisy background",
+    "text": "عايز ألغي الطلب عشان مسافر النهاردة بليل.",
+    "is_synthetic": true
+  },
+  {
+    "id": "noisy_03",
+    "file": "noisy_03.mp3",
+    "category": "Noisy background",
+    "text": "في كود خصم جالي على الموبايل ومش شغال في الأبلكيشن.",
+    "is_synthetic": true
+  },
+  {
+    "id": "noisy_04",
+    "file": "noisy_04.mp3",
+    "category": "Noisy background",
+    "text": "لو سمحتوا اتأكدوا من رقم التليفون عشان المندوب ميتوهش.",
+    "is_synthetic": true
+  },
+  {
+    "id": "fast_01",
+    "file": "fast_01.mp3",
+    "category": "Unclear / mumbled / fast",
+    "text": "عايزأعرفالطلبفينبسرعةلوتكرمت.",
+    "is_synthetic": true
+  },
+  {
+    "id": "fast_02",
+    "file": "fast_02.mp3",
+    "category": "Unclear / mumbled / fast",
+    "text": "الاوردر كان مفروض يوصل امبارح ومجاش لحد النهاردة خالص.",
+    "is_synthetic": true
+  },
+  {
+    "id": "fast_03",
+    "file": "fast_03.mp3",
+    "category": "Unclear / mumbled / fast",
+    "text": "في مشكلة في الحساب بتاعي ومش عارف أعمل تسجيل دخول.",
+    "is_synthetic": true
+  },
+  {
+    "id": "numbers_01",
+    "file": "numbers_01.mp3",
+    "category": "Numbers (order IDs, phone numbers)",
+    "text": "رقم طلبي هو تسعة ثمانية أربعة اثنين واحد.",
+    "is_synthetic": true
+  },
+  {
+    "id": "numbers_02",
+    "file": "numbers_02.mp3",
+    "category": "Numbers (order IDs, phone numbers)",
+    "text": "رقم موبايلي للتواصل صفر عشرة واحد اثنين ثلاثة أربعة خمسة ستة سبعة ثمانية.",
+    "is_synthetic": true
+  },
+  {
+    "id": "numbers_03",
+    "file": "numbers_03.mp3",
+    "category": "Numbers (order IDs, phone numbers)",
+    "text": "المبلغ المطلوب كان ثلاثمائة وخمسين جنيه وخمسين قرش.",
+    "is_synthetic": true
+  },
+  {
+    "id": "silence_01",
+    "file": "silence_01.wav",
+    "category": "Silence / non-speech",
+    "text": "",
+    "is_synthetic": true
+  },
+  {
+    "id": "silence_02",
+    "file": "silence_02.wav",
+    "category": "Silence / non-speech",
+    "text": "",
+    "is_synthetic": true
+  }
+]
