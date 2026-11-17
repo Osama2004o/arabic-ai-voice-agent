@@ -197,11 +197,8 @@ cython_debug/
 .abstra/
 
 # Visual Studio Code
-#   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore that
-#   can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#   and can be added to the global gitignore or merged into this file. However, if you prefer, you
-#   could uncomment the following to ignore the entire vscode folder
-# .vscode/
+.vscode/
+
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
 
@@ -218,3 +215,36 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# IDEs
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS Generated
+.DS_Store
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+
+# Temporary audio uploads & caches
+temp_audio/
+recordings/
+*.tmp
+
+# Local model weights / Hugging Face caches
+models/
+hf_cache/
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.out
+*.toc
+*.lof
+*.lot
+
