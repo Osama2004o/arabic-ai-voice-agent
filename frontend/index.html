@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>وكيل الذكاء الاصطناعي الصوتي العربي | Arabic AI Voice Agent</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <div class="pulse-icon">🎙️</div>
+        <div>
+          <h1>وكيل المحادثة الصوتي الذكي</h1>
+          <p class="subtitle">Cellula Technologies — Voice Pipeline & Customer Service</p>
+        </div>
+      </div>
+      <div class="header-controls">
+        <label for="voiceSelect" class="voice-label">صوت المساعد:</label>
+        <select id="voiceSelect" class="voice-dropdown">
+          <option value="female" selected>أنثوي — سلمى (لهجة مصرية)</option>
+          <option value="male">ذكوري — شاكر (لهجة مصرية)</option>
+          <option value="female_msa">أنثوي — زارية (فصحى)</option>
+          <option value="male_msa">ذكوري — حامد (فصحى)</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="main-grid">
+      <!-- Conversation & Voice Interaction Area -->
+      <section class="chat-section">
+        <div class="chat-messages" id="chatMessages">
+          <div class="message agent-message">
+            <div class="bubble">
+              مرحباً بك! أنا مساعدك الصوتي الذكي لخدمة العملاء. اضغط على زر الميكروفون بالأسفل وتحدث معي بالعامية المصرية أو الفصحى وسأجيبك صوتياً فوراً.
+            </div>
+            <span class="message-time">النظام</span>
+          </div>
+        </div>
+
+        <!-- Audio Player Box (Hidden/Visible for replay) -->
+        <div class="audio-player-container" id="playerContainer">
+          <audio id="replyAudio" preload="auto"></audio>
+          <button id="replayBtn" class="replay-btn" style="display: none;">
+            <span>🔊 إعادة استماع الرد الأخير</span>
+          </button>
+        </div>
+
+        <!-- Live Status Bar -->
+        <div class="status-bar" id="statusBar">
+          <span class="status-indicator idle"></span>
+          <span id="statusText">جاهز للاستماع</span>
+        </div>
+
+        <!-- Recording & Text Input Controls -->
+        <div class="controls-card">
+          <div class="mic-container">
+            <button id="micBtn" class="mic-button idle" title="اضغط للتحدث">
+              <span class="mic-icon">🎙️</span>
+              <span class="mic-ripple"></span>
+            </button>
+            <span class="mic-hint" id="micHint">اضغط لبدء التحدث</span>
+          </div>
+
+          <!-- Text Fallback -->
+          <form id="textForm" class="text-fallback-form">
+            <input type="text" id="textInput" placeholder="أو اكتب رسالتك هنا إذا كان الميكروفون غير متاح..." autocomplete="off">
+            <button type="submit" id="sendTextBtn">إرسال</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Latency & Performance Panel -->
+      <aside class="metrics-section">
+        <div class="metrics-card">
+          <h2>مؤشرات زمن الاستجابة (Latency)</h2>
+          <div class="target-badge">
+            <span class="badge-title">الهدف القياسي:</span>
+            <span class="badge-value">&lt; 3.0 ثوانٍ (End-to-End)</span>
+          </div>
+
+          <!-- Last Turn Card -->
+          <div class="metric-group">
+            <h3>نتائج الجولة الأخيرة</h3>
+            <div class="metric-row main-client-metric">
+              <span>الزمن الفعلي لتجربة المستخدم (Client Total):</span>
+              <strong id="clientLatencyVal">—</strong>
+            </div>
+            <div id="targetStatus" class="target-indicator neutral">بانتظار بدء المحادثة</div>
+
+            <div class="stage-timings">
+              <div class="timing-bar-item">
+                <div class="timing-label">
+                  <span>تحويل الصوت لنص (STT):</span>
+                  <span id="sttVal">—</span>
+                </div>
+                <div class="progress-track"><div id="sttBar" class="progress-fill stt-fill"></div></div>
+              </div>
+
+              <div class="timing-bar-item">
+                <div class="timing-label">
+                  <span>تفكير النموذج (LLM):</span>
+                  <span id="llmVal">—</span>
+                </div>
+                <div class="progress-track"><div id="llmBar" class="progress-fill llm-fill"></div></div>
+              </div>
+
+              <div class="timing-bar-item">
+                <div class="timing-label">
+                  <span>توليد الصوت (TTS):</span>
+                  <span id="ttsVal">—</span>
+                </div>
+                <div class="progress-track"><div id="ttsBar" class="progress-fill tts-fill"></div></div>
+              </div>
+
+              <div class="timing-bar-item">
+                <div class="timing-label">
+                  <span>إجمالي معالجة الخادم:</span>
+                  <span id="serverTotalVal">—</span>
+                </div>
+                <div class="progress-track"><div id="serverTotalBar" class="progress-fill server-fill"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Session Statistics -->
+          <div class="metric-group">
+            <h3>إحصائيات الجلسة</h3>
+            <div class="stats-grid">
+              <div class="stat-box">
+                <span class="stat-num" id="statTurns">0</span>
+                <span class="stat-lbl">عدد الجولات</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-num" id="statAvg">—</span>
+                <span class="stat-lbl">متوسط الزمن</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-num" id="statMin">—</span>
+                <span class="stat-lbl">أسرع جولة</span>
+              </div>
+              <div class="stat-box">
+                <span class="stat-num" id="statMax">—</span>
+                <span class="stat-lbl">أبطأ جولة</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Technical Specs Note -->
+          <div class="specs-box">
+            <h4>المواصفات التقنية:</h4>
+            <ul>
+              <li><strong>STT:</strong> Groq Whisper Turbo (biasing بالعامية)</li>
+              <li><strong>TTS:</strong> Edge-TTS (سلمى / شاكر)</li>
+              <li><strong>Agent:</strong> LangChain / OpenRouter LLM</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
