@@ -248,3 +248,7 @@ hf_cache/
 *.lof
 *.lot
 
+
+# Local env variants (e.g. .env.render) contain secrets
+.env.*
+!.env.example
