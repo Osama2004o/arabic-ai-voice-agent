@@ -1,3 +1,14 @@
+---
+title: Arabic AI Voice Agent
+emoji: 🎙️
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 8000
+pinned: false
+short_description: Arabic customer-service voice agent (STT, LLM, TTS)
+---
+
 # Arabic AI Voice Agent (وكيل الذكاء الاصطناعي الصوتي العربي)
 **Cellula Technologies — NLP Internship**
 
@@ -37,36 +48,31 @@ An intelligent, real-time Arabic voice assistant capable of understanding spoken
 ```text
 arabic-ai-voice-agent/
 ├── app/
-│   ├── main.py                   # Standalone FastAPI server & static file host
-│   └── speech/
-│       ├── __init__.py           # Package exports
-│       ├── config.py             # System configuration, voice mappings, constants
-│       ├── text_utils.py         # TTS text sanitization & Arabic WER normalization
-│       ├── latency.py            # LatencyTracker and statistical summarizers
-│       ├── stt.py                # Groq Whisper primary + local CPU fallback
-│       ├── tts.py                # Edge-TTS streaming, voice selection & in-memory cache
-│       ├── stub_agent.py         # LangChain / OpenRouter LLM stub
-│       ├── pipeline.py           # run_voice_turn end-to-end coordinator
-│       └── router.py             # FastAPI APIRouter (/speech/* endpoints)
-├── frontend/
-│   ├── index.html                # RTL Arabic web interface
-│   ├── style.css                 # Dark responsive styles & recording pulse
-│   └── app.js                   # MediaRecorder, player & client latency clock
-├── benchmarks/
-│   ├── test_audio/               # 30 benchmark clips across 7 speech categories
-│   │   └── references.json       # Benchmark metadata and ground truth text
-│   ├── generate_synthetic_audio.py # Script to create evaluation clips
-│   ├── run_stt_accuracy.py       # STT benchmark (computes WER using jiwer)
-│   ├── run_latency.py            # End-to-end voice latency benchmark (>= 30 turns)
-│   └── results/                  # Generated CSV benchmark results
-├── tests/
-│   └── test_speech_unit.py       # Comprehensive pytest unit test suite
-├── report/
-│   ├── section_speech.tex        # Complete LaTeX report section
-│   └── plot_benchmarks.py        # Generates publication plots from benchmark CSVs
-├── requirements.txt              # Python dependencies
+│   ├── main.py                   # FastAPI entrypoint (routers, CORS, frontend, startup wiring)
+│   ├── api/
+│   │   ├── chat.py               # POST /chat/text, POST /chat/voice
+│   │   ├── notify.py             # POST /send-email, POST /send-telegram (API key + rate limit)
+│   │   └── health.py             # GET /health
+│   ├── core/
+│   │   ├── config.py             # Environment-based settings
+│   │   └── security.py           # X-API-Key check, rate limiter
+│   ├── integrations/
+│   │   ├── email_client.py       # SMTP (Gmail etc.) or Resend API
+│   │   ├── telegram_client.py    # Telegram Bot API
+│   │   └── __init__.py           # Connects real senders to the agent's tools
+│   ├── models/schemas.py         # Request/response models
+│   ├── agent/                    # LangGraph customer-service agent (Member 2)
+│   └── speech/                   # STT, TTS, voice pipeline, /speech/* routes (Member 1)
+├── frontend/                     # RTL Arabic web UI (index.html, style.css, app.js)
+├── benchmarks/                   # STT accuracy and latency benchmarks + results
+├── tests/                        # pytest suites (speech, agent, backend)
+├── report/                       # LaTeX report sections and figures
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt              # Runtime dependencies
+├── requirements-dev.txt          # + tests, benchmarks, plots
 ├── .env.example                  # Environment variables template
-├── INTEGRATION_NOTES.md          # Interface contract for Members 2 and 3
+├── INTEGRATION_NOTES.md
 └── README.md
 ```
 
@@ -88,25 +94,16 @@ source venv/bin/activate
 
 ### 2. Install Dependencies
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # or requirements.txt for runtime only
 ```
 
 ### 3. Configure Environment Variables
-Copy `.env.example` to `.env` and fill in your API keys:
 ```bash
 cp .env.example .env
 ```
-Contents of `.env`:
-```ini
-GROQ_API_KEY=your_groq_api_key_here
-OPENROUTER_API_KEY=your_openrouter_api_key_here
-STT_PROVIDER=groq
-GROQ_STT_MODEL=whisper-large-v3-turbo
-LOCAL_WHISPER_MODEL=small
-TTS_PROVIDER=edge
-DEFAULT_VOICE=female
-LLM_STUB_MODEL=meta-llama/llama-3.3-70b-instruct:free
-```
+Fill in at least `GROQ_API_KEY` / `OPENROUTER_API_KEY`. Email and Telegram are optional:
+when they are not configured the agent still works and only *logs* the send ("simulated" mode).
+See [Email and Telegram setup](#-email-and-telegram-setup).
 
 ---
 
@@ -126,11 +123,131 @@ Open your browser at **`http://localhost:8000`**.
 
 ---
 
+## 🔌 Backend API
+
+Interactive docs: **`http://localhost:8000/docs`**
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/health` | Status, version, and which integrations are live |
+| `POST` | `/chat/text` | `{"text": "...", "session_id": "..."}` → agent reply, action, confirmation flags |
+| `POST` | `/chat/voice` | multipart `audio`, `voice` (`female`/`male`/`female_msa`/`male_msa`), `session_id` → transcript, reply, base64 MP3, timings |
+| `POST` | `/send-email` | `{"to", "subject", "body"}` — requires `X-API-Key` |
+| `POST` | `/send-telegram` | `{"message"}` — requires `X-API-Key` |
+| `POST` | `/speech/stt`, `/speech/tts` | Individual speech stages |
+| `GET` | `/speech/voices` | Available voices |
+| `POST` | `/speech/demo-turn` | Voice turn with the stub LLM (testing only) |
+
+```bash
+curl -X POST http://localhost:8000/chat/text -H "Content-Type: application/json" \
+     -d '{"text": "عايز أعرف حالة طلبي", "session_id": "demo1"}'
+
+curl -X POST http://localhost:8000/send-telegram -H "X-API-Key: $API_KEY" \
+     -H "Content-Type: application/json" -d '{"message": "اختبار من وكيل خدمة العملاء"}'
+```
+
+**How the agent sends messages:** the agent never sends anything directly. When a customer asks for
+an email or Telegram message, it prepares the message and asks for confirmation. Only after the customer
+confirms ("نعم", "ابعت", …) does the backend send it through the integrations below. If delivery fails,
+the agent tells the customer instead of claiming success.
+
+**Security:** `/send-email` and `/send-telegram` require the `X-API-Key` header when `API_KEY` is set
+(in `APP_ENV=production` they refuse every request until it is set). All sends, including those triggered by
+the agent, are rate-limited (`NOTIFY_RATE_LIMIT_PER_MIN`). `EMAIL_ALLOWED_DOMAINS` can restrict recipients.
+
+---
+
+## 📨 Email and Telegram Setup
+
+### Email via Gmail (SMTP)
+1. Enable 2-Step Verification on the Google account.
+2. Create an **App Password**: Google Account → Security → App passwords.
+3. In `.env`:
+   ```ini
+   EMAIL_PROVIDER=smtp
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USERNAME=you@gmail.com
+   SMTP_PASSWORD=<16-character app password>
+   EMAIL_FROM=you@gmail.com
+   ```
+
+### Email via Resend (if your host blocks SMTP)
+Many free hosting tiers block outbound SMTP ports. Resend uses HTTPS instead:
+```ini
+EMAIL_PROVIDER=resend
+RESEND_API_KEY=re_...
+EMAIL_FROM=onboarding@resend.dev   # or an address on your verified domain
+```
+
+### Telegram
+1. In Telegram, message **@BotFather** → `/newbot` → copy the token.
+2. Send any message to your new bot.
+3. Open `https://api.telegram.org/bot<TOKEN>/getUpdates` and copy `result[0].message.chat.id`.
+4. In `.env`:
+   ```ini
+   TELEGRAM_BOT_TOKEN=123456:ABC...
+   TELEGRAM_CHAT_ID=123456789
+   ```
+
+Check `GET /health`: `"integrations": {"email": true, "telegram": true}` means both are live.
+
+---
+
+## 🐳 Docker
+
+```bash
+docker compose up --build
+```
+Open `http://localhost:8000`. The container reads `.env`, runs as a non-root user, and has a health check on `/health`.
+
+Without Compose:
+```bash
+docker build -t arabic-ai-voice-agent .
+docker run --env-file .env -p 8000:8000 arabic-ai-voice-agent
+```
+
+---
+
+## ☁️ Deployment
+
+Set `APP_ENV=production`, a strong `API_KEY`, and the other variables from `.env.example` as the platform's
+environment variables / secrets (never commit `.env`). Use `STT_PROVIDER=groq`: free CPU instances are too slow for local Whisper.
+
+**Render**
+1. New → Web Service → connect the GitHub repo → Runtime: **Docker**.
+2. Add the environment variables. Health check path: `/health`.
+3. Render sets `$PORT` automatically. The public URL is `https://<name>.onrender.com`.
+4. Free instances sleep when idle (the first request takes ~1 minute) and block SMTP → use `EMAIL_PROVIDER=resend`.
+
+**Railway**
+1. New Project → Deploy from GitHub repo (the Dockerfile is detected).
+2. Add the variables, then Settings → Networking → Generate Domain.
+
+**Hugging Face Spaces** (recommended free option: 2 vCPU / 16 GB RAM, enough for local Whisper)
+1. Create a Space: **New → Space**, SDK **Docker**, hardware **CPU basic (free)**.
+2. Add every variable from `.env` under **Settings → Variables and secrets** (as secrets). Do not upload `.env`.
+3. The Space settings are already in the front matter at the top of this README (`sdk: docker`, `app_port: 8000`).
+4. Deploy (Git Bash):
+   ```bash
+   git remote add space https://huggingface.co/spaces/<username>/<space-name>   # once
+   bash scripts/deploy_hf.sh
+   ```
+   Use a Hugging Face **write** token (huggingface.co/settings/tokens) as the password.
+   The script pushes a clean snapshot of the current commit **without binary files** (benchmark audio,
+   report figures), because Hugging Face rejects binaries that are not in Git LFS and this repo's history contains some.
+5. Open `https://<username>-<space-name>.hf.space` directly (the microphone may not work inside the huggingface.co page frame).
+6. Spaces block SMTP → use `EMAIL_PROVIDER=resend` for email. Free Spaces sleep after ~48 h without visits.
+
+Microphone recording in the browser requires **HTTPS**, which all three platforms provide.
+
+---
+
 ## 🧪 Testing & Benchmarks
 
 ### 1. Run Unit Tests
 ```bash
-pytest tests/test_speech_unit.py -v
+pytest -v
 ```
 
 ### 2. Run STT Accuracy Benchmark (Word Error Rate)
@@ -159,4 +276,4 @@ Outputs publication figures in `report/`:
 ---
 
 ## 👥 Team Integration Notes
-See [INTEGRATION_NOTES.md](file:///d:/Courses/nlp%20cellula/arabic-ai-voice-agent/INTEGRATION_NOTES.md) for the exact async signature contracts with **Member 2 (Conversational Agent)** and **Member 3 (FastAPI Deployment)**.
+See [INTEGRATION_NOTES.md](INTEGRATION_NOTES.md) for the exact async signature contracts with **Member 2 (Conversational Agent)** and **Member 3 (FastAPI Deployment)**.

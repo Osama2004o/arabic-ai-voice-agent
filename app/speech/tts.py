@@ -3,7 +3,7 @@ import logging
 from typing import AsyncIterator, Dict, Tuple, Literal
 import edge_tts
 
-from .config import VOICES, DEFAULT_VOICE, UNCLEAR_SPEECH_REPLY, GREETING_REPLY
+from .config import VOICES, OPTIONAL_MSA_VOICES, DEFAULT_VOICE, UNCLEAR_SPEECH_REPLY, GREETING_REPLY
 from .text_utils import clean_text_for_tts
 
 logger = logging.getLogger("speech.tts")
@@ -19,6 +19,8 @@ def _resolve_voice_id(voice: str) -> str:
     cleaned = (voice or "").lower().strip()
     if cleaned in VOICES:
         return VOICES[cleaned]
+    if cleaned in OPTIONAL_MSA_VOICES:
+        return OPTIONAL_MSA_VOICES[cleaned]
     # Check if a direct voice identifier was passed
     if "neural" in cleaned:
         return voice

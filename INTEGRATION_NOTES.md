@@ -2,6 +2,11 @@
 
 These interface contracts and integration instructions are prepared for **Member 2 (LLM / Agent)** and **Member 3 (FastAPI Deployment & Orchestration)**.
 
+> **Status (backend integrated):** `/chat/text` and `/chat/voice` are implemented in `app/api/chat.py`,
+> the frontend now calls `/chat/voice` (real agent), and Email/Telegram senders are attached to the agent's
+> tools at startup by `app/integrations/register_agent_integrations()`. Sections 2B and 2C below are kept
+> for reference. See the README for the API table, Docker, and deployment.
+
 ---
 
 ## 1. Contract with Member 2 (Conversational Agent)

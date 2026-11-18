@@ -42,6 +42,11 @@ def clear_action_log() -> None:
     ACTION_LOG.clear()
 
 
+def action_succeeded(payload: Dict[str, Any]) -> bool:
+    """True unless the dispatcher reported a delivery failure."""
+    return payload.get("mode") != "failed"
+
+
 def is_valid_email(email: Optional[str]) -> bool:
     return bool(email and EMAIL_REGEX.match(email.strip()))
 
@@ -60,11 +65,16 @@ async def send_email(to: str, subject: str, body: str) -> Dict[str, Any]:
     }
 
     if _EMAIL_HANDLER is not None:
-        result = _EMAIL_HANDLER(payload["to"], payload["subject"], payload["body"])
-        if inspect.isawaitable(result):
-            result = await result
-        payload["mode"] = "live"
-        payload["result"] = result
+        try:
+            result = _EMAIL_HANDLER(payload["to"], payload["subject"], payload["body"])
+            if inspect.isawaitable(result):
+                result = await result
+            payload["mode"] = "live"
+            payload["result"] = result
+        except Exception as exc:  # never let a delivery failure crash the conversation
+            payload["mode"] = "failed"
+            payload["result"] = {"status": "failed", "error": getattr(exc, "message", type(exc).__name__)}
+            logger.warning("[TOOL FAILED] %s -> %s", payload["action"], payload["result"]["error"])
     else:
         payload["mode"] = "simulated"
         payload["result"] = {"status": "queued", "message": "Email handler not attached; logged locally."}
@@ -86,11 +96,16 @@ async def send_telegram(message: str) -> Dict[str, Any]:
     }
 
     if _TELEGRAM_HANDLER is not None:
-        result = _TELEGRAM_HANDLER(payload["message"])
-        if inspect.isawaitable(result):
-            result = await result
-        payload["mode"] = "live"
-        payload["result"] = result
+        try:
+            result = _TELEGRAM_HANDLER(payload["message"])
+            if inspect.isawaitable(result):
+                result = await result
+            payload["mode"] = "live"
+            payload["result"] = result
+        except Exception as exc:  # never let a delivery failure crash the conversation
+            payload["mode"] = "failed"
+            payload["result"] = {"status": "failed", "error": getattr(exc, "message", type(exc).__name__)}
+            logger.warning("[TOOL FAILED] %s -> %s", payload["action"], payload["result"]["error"])
     else:
         payload["mode"] = "simulated"
         payload["result"] = {"status": "queued", "message": "Telegram handler not attached; logged locally."}
