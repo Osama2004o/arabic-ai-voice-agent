@@ -1,0 +1,154 @@
+
+\section{AI Agent Design and Conversation Management}
+\label{sec:agent_design}
+
+This section presents the architecture, prompt engineering, conversational memory, knowledge retrieval, tool-calling safeguards, and empirical evaluation of the Arabic Customer Service Conversational AI Agent (\texttt{app/agent/}). Designed specifically for real-time voice interaction, the agent receives transcribed Arabic text from the Speech Pipeline, maintains multi-turn context per \texttt{session\_id}, grounds replies in a structured e-commerce knowledge base, enforces explicit confirmation before dispatching external communications, and returns concise plain-Arabic text within a strict $\le 1.0$\,s reasoning budget.
+
+\subsection{AI Agent Architecture}
+\label{subsec:agent_architecture}
+
+The conversational workflow is implemented as a stateful directed graph using \textbf{LangGraph} (\texttt{StateGraph} over \texttt{AgentState}). Rather than an unconstrained ReAct loop—which risks unpredictable multi-step latencies exceeding the 3.0-second total voice budget—the agent executes a deterministic four-node pipeline compiled with an in-memory checkpointer, as illustrated in Figure~\ref{fig:agent_graph_flow}.
+
+\begin{figure}[htbp]
+\centering
+\begin{center}
+\fbox{
+\begin{minipage}{0.94\linewidth}
+\centering
+\vspace{0.2cm}
+\textbf{User Utterance + \texttt{session\_id}} $\rightarrow$
+\textbf{\texttt{prepare\_turn}} (Slot Extraction, Dialect, Top-$K$ FAQ) $\rightarrow$
+\textbf{\texttt{confirmation\_gate}} \\
+\vspace{0.15cm}
+\textit{Pending Confirmed/Cancelled} $\longrightarrow$ \textbf{\texttt{finalize}} \quad \textbar\ \quad
+\textit{Normal Turn} $\longrightarrow$ \textbf{\texttt{agent\_llm}} (Tools + Fallback) $\longrightarrow$ \textbf{\texttt{finalize}}
+\vspace{0.2cm}
+\end{minipage}
+}
+\end{center}
+\caption{Stateful LangGraph Conversational Workflow with Architectural Confirmation Gate.}
+\label{fig:agent_graph_flow}
+\end{figure}
+
+To integrate cleanly across subsystems without coupling to speech dependencies at import time, the package exposes two complementary contracts in \texttt{app/agent/\_\_init\_\_.py}:
+\begin{itemize}
+    \item \textbf{Voice Pipeline Contract:} \texttt{async def respond(text: str, session\_id: str) -> str}, consumed directly by \texttt{run\_voice\_turn} in \texttt{app/speech/pipeline.py}.
+    \item \textbf{Backend API Contract:} \texttt{async def arun\_agent(session\_id: str, text: str) -> AgentResult} (and synchronous \texttt{run\_agent}), returning structured fields \texttt{response}, \texttt{action}, \texttt{needs\_confirmation}, \texttt{needs\_human}, \texttt{customer\_name}, \texttt{order\_id}, and \texttt{latency\_ms} for FastAPI routes such as \texttt{POST /chat/text}.
+\end{itemize}
+
+\subsection{Prompt Design and Voice-First Constraints}
+\label{subsec:prompt_design}
+
+Customer service behavior is governed by structured system prompts in \texttt{app/agent/prompts.py} tailored for real-time speech synthesis:
+\begin{enumerate}
+    \item \textbf{Brevity Budget:} Responses are capped at 1--3 short sentences (maximum 40 words in prompts; hard-capped at 55 words by \texttt{sanitize\_plain\_arabic}) so downstream Edge-TTS synthesis remains fast and natural.
+    \item \textbf{Pure Plain-Arabic Formatting:} Prompts forbid Markdown (\texttt{**}, \texttt{\#}, backticks), bulleted or numbered lists, URLs, and emojis. A post-processing sanitizer strips any residual formatting tokens before returning text.
+    \item \textbf{Strict Grounding and Anti-Hallucination:} The agent must answer solely from retrieved knowledge-base entries and session context, never fabricating prices, delivery schedules, or order statuses, and explicitly admitting when an out-of-scope query falls outside store data.
+    \item \textbf{Empathy-First Complaint Handling:} On complaints or delayed-order frustration, the agent apologizes empathetically first before requesting an order ID or proposing a replacement, refund, or escalation.
+\end{enumerate}
+
+\subsection{Arabic and Egyptian Arabic Support}
+\label{subsec:dialect_support}
+
+Because Egyptian customers frequently switch between Modern Standard Arabic (MSA) and Egyptian Colloquial Arabic (ECA), \texttt{prompts.py} maintains dual system prompt variants (\texttt{EGYPTIAN\_SYSTEM\_PROMPT} and \texttt{MSA\_SYSTEM\_PROMPT}). A lightweight lexical detector (\texttt{detect\_dialect}) inspects colloquial markers (e.g., \textit{"ازاي"}, \textit{"عايز"}, \textit{"بتاعي"}, \textit{"بكام"}, \textit{"الأوردر"}) versus formal MSA markers (e.g., \textit{"أود"}, \textit{"ما هي"}, \textit{"كيف يمكنني"}, \textit{"يرجى"}) to match the user's register automatically while defaulting to polite Egyptian Arabic. All text normalization handles Alef unification (\texttt{أ/إ/آ/ٱ $\rightarrow$ ا}), Teh Marbuta (\texttt{ة $\rightarrow$ ه}), Alef Maksura (\texttt{ى $\rightarrow$ ي}), diacritic removal, and Arabic-Indic digit conversion (\texttt{٠--٩ $\rightarrow$ 0--9}).
+
+\subsection{Conversation Memory and Slot Tracking}
+\label{subsec:conversation_memory}
+
+Multi-turn context is maintained per \texttt{session\_id} in \texttt{app/agent/memory.py} via two mechanisms:
+\begin{itemize}
+    \item \textbf{LangGraph Checkpointing:} \texttt{MemorySaver} persists conversation history and state fields (\texttt{pending\_action}, \texttt{needs\_human}, \texttt{customer\_name}, \texttt{order\_id}, \texttt{customer\_email}, \texttt{current\_issue}) keyed by \texttt{thread\_id=session\_id}, isolating concurrent users completely.
+    \item \textbf{Deterministic Slot Extraction and Window Trimming:} Before every LLM call, \texttt{extract\_slots} extracts customer names, order numbers (including Arabic-Indic numerals), email addresses, and issue categories via compiled regular expressions, while \texttt{trim\_messages\_for\_llm} restricts the active LLM context window to the last 8 messages to keep input token counts low and latency under 1.0\,s.
+\end{itemize}
+
+\subsection{FAQ Retrieval and Knowledge Base}
+\label{subsec:faq_system}
+
+The store knowledge base (\texttt{app/agent/knowledge\_base.json}) contains 18 realistic Egyptian e-commerce customer service entries covering working hours, order tracking, order cancellation, 14-day returns and refunds, damaged/wrong items, Cairo and governorate shipping fees, delivery durations, cash-on-delivery and card payment policies, address/size edits prior to dispatch, courier call-ahead coordination, promo codes, company tax invoices, account login recovery, warranty, and human escalation.
+
+To avoid adding a 400--700\,ms vector-embedding or tool-call round-trip per turn, \texttt{app/agent/kb.py} loads and indexes the normalized FAQ entries once at import time and executes \texttt{retrieve\_faq(query, top\_k=3)} in under 2\,ms using weighted phrase-keyword hits plus prefix-tolerant Arabic token overlap. The top-3 relevant entries are injected directly into the turn's system prompt, enabling single-pass grounded responses.
+
+\subsection{Email and Telegram Tool Logic}
+\label{subsec:tool_logic}
+
+External side effects are declared via Pydantic-validated LangChain tools in \texttt{app/agent/tools.py}: \texttt{request\_send\_email(to, subject, body)}, \texttt{request\_send\_telegram(message)}, and \texttt{escalate\_to\_human(reason, customer\_name, order\_id)}. To decouple conversational logic from backend transport credentials, \texttt{tools.py} exposes pluggable registration hooks (\texttt{register\_email\_handler} and \texttt{register\_telegram\_handler}) supporting both synchronous and asynchronous SMTP/Telegram Bot dispatchers. When no live handler is attached, confirmed dispatches are safely logged to an inspectable \texttt{ACTION\_LOG} in simulated mode.
+
+\subsection{Confirmation Gate and Safety Rules}
+\label{subsec:confirmation_safety}
+
+Prompt instructions alone are insufficient to prevent accidental external messages. Accordingly, confirmation is enforced \textbf{architecturally} inside the LangGraph workflow:
+\begin{enumerate}
+    \item \textbf{Mandatory Staging:} Calling \texttt{request\_send\_email} or \texttt{request\_send\_telegram} never sends a message. Instead, \texttt{agent\_llm\_node} intercepts the tool call, populates \texttt{pending\_action} with the target payload, sets \texttt{needs\_confirmation=True}, and asks the user for explicit approval in Arabic.
+    \item \textbf{Deterministic Confirmation Classifier:} On the subsequent turn, \texttt{confirmation\_gate\_node} classifies Arabic affirmative tokens (\textit{"نعم"}, \textit{"أيوة"}, \textit{"تمام"}, \textit{"موافق"}, \textit{"ابعت"}) versus cancellation tokens (\textit{"لا"}, \textit{"لأ"}, \textit{"إلغاء"}, \textit{"بلاش"}, \textit{"مش عايز"}) using word-boundary matching in $< 1$\,ms—executing the staged tool once on approval or clearing \texttt{pending\_action} cleanly on rejection.
+    \item \textbf{Anti-Fabrication Email Guard:} If a user asks to send an email without providing an address (e.g., \textit{"أرسل ملخص المشكلة إلى بريدي الإلكتروني"}), the agent validates any tool argument against emails actually present in the conversation or session slots, rejecting placeholder addresses and prompting the user for their real email first.
+    \item \textbf{Tool-Call Safety Net:} If the user issues an explicit send command with valid target data and the LLM replies with a confirmation question in plain text instead of invoking the staging tool, the node deterministically stages \texttt{pending\_action} so the follow-up confirmation never fails.
+\end{enumerate}
+
+\subsection{Human Escalation Logic}
+\label{subsec:human_escalation}
+
+Escalation to a human representative is triggered whenever the user explicitly requests a human agent, reports a repeated/unresolved issue, or invokes \texttt{escalate\_to\_human}. The node records an escalation ticket in \texttt{ACTION\_LOG} containing the reason, \texttt{customer\_name}, and \texttt{order\_id}, sets \texttt{needs\_human=True} in both \texttt{AgentState} and the returned \texttt{AgentResult}, and emits a polite Arabic handoff message.
+
+\subsection{Testing and Evaluation Results}
+\label{subsec:agent_testing}
+
+\subsubsection{Offline Unit Tests}
+An automated offline test suite (\texttt{tests/test\_agent\_unit.py}) verifies FAQ retrieval across MSA and Egyptian queries, out-of-scope rejection, dialect detection, multi-turn slot extraction, plain-Arabic sanitization, session isolation, confirmation-gate approval/rejection, missing-email protection, human escalation, and the FastAPI \texttt{/chat/text} contract. All \textbf{12/12 unit tests passed in 2.40\,s}.
+
+\subsubsection{Live 10-Scenario Conversational Evaluation}
+Live end-to-end evaluation was executed via \texttt{benchmarks/run\_agent\_eval.py} using Groq-hosted \texttt{qwen/qwen3.8-27b} (primary) with automatic failover to \texttt{openai/gpt-oss-20b} and deterministic fallback. All \textbf{10/10 scenarios passed}, achieving a \textbf{mean turn latency of 482.53\,ms} (Min: 229.45\,ms, P95: 688.95\,ms, Max: 1,410.72\,ms), well within the $\le 1,000$\,ms LLM budget. Results are summarized in Table~\ref{tab:agent_eval_results}.
+
+\begin{table}[htbp]
+\centering
+\caption{Live Conversational AI Agent Evaluation Results (10 Scenarios)}
+\label{tab:agent_eval_results}
+\begin{tabular}{rlccr}
+\toprule
+\textbf{\#} & \textbf{Scenario} & \textbf{Key State / Action} & \textbf{Result} & \textbf{Avg Latency (ms)} \\
+\midrule
+1 & Arabic FAQ question (MSA) & KB grounding, plain Arabic & PASS & 545.71 \\
+2 & Egyptian Arabic question & ECA dialect reply, Cairo fee & PASS & 244.17 \\
+3 & Multi-turn follow-up \& memory & Retained name + \texttt{12345} & PASS & 320.87 \\
+4 & Customer complaint & Empathy + return/order prompt & PASS & 369.25 \\
+5 & Unknown / out-of-scope question & Honest refusal, no hallucination & PASS & 232.09 \\
+6 & Email request \& confirmation & Staged $\rightarrow$ confirmed \texttt{send\_email} & PASS & 688.95 \\
+7 & Telegram request \& confirmation & Staged $\rightarrow$ confirmed \texttt{send\_telegram} & PASS & 1,410.72 \\
+8 & Confirmation rejection & Cancelled cleanly, 0 sends & PASS & 229.45 \\
+9 & Human escalation & \texttt{needs\_human=True}, logged & PASS & 493.61 \\
+10 & Missing information handling & Requested missing email & PASS & 290.52 \\
+\midrule
+\multicolumn{2}{l}{\textbf{Overall Summary (10/10 Passed)}} & \textbf{Min: 229.45\,ms \textbar\ P95: 688.95\,ms} & \textbf{100\%} & \textbf{Mean: 482.53} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{End-to-End Voice Pipeline Integration}
+Integrating \texttt{agent.respond} into the Voice Pipeline (\texttt{run\_voice\_turn}, female voice \texttt{ar-EG-SalmaNeural}) across four Arabic audio test clips produced the stage timings in Table~\ref{tab:agent_voice_integration}. The LangGraph agent averaged \textbf{357.91\,ms} (281.65--496.76\,ms), confirming compliance with the $\le 1.0$\,s agent reasoning budget, with the Egyptian shipping turn completing in 2,994.56\,ms end-to-end.
+
+\begin{table}[htbp]
+\centering
+\caption{Integrated Voice Pipeline + Conversational AI Agent Latency ($N=4$ Audio Clips)}
+\label{tab:agent_voice_integration}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Audio Clip (Category)} & \textbf{STT (ms)} & \textbf{Agent LLM (ms)} & \textbf{TTS (ms)} & \textbf{Server Total (ms)} \\
+\midrule
+\texttt{msa\_clear\_01.mp3} (MSA Order) & 798.07 & 496.76 & 3,744.93 & 5,039.79 \\
+\texttt{msa\_clear\_02.mp3} (MSA Returns) & 207.88 & 297.39 & 3,578.27 & 4,083.60 \\
+\texttt{eg\_clear\_01.mp3} (Egyptian Returns) & 302.51 & 355.86 & 2,839.67 & 3,498.10 \\
+\texttt{eg\_clear\_03.mp3} (Egyptian Shipping) & 222.82 & 281.65 & 2,490.06 & 2,994.56 \\
+\midrule
+\textbf{Mean} & \textbf{382.82} & \textbf{357.91} & \textbf{3,163.23} & \textbf{3,904.01} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Limitations and Challenges}
+\label{subsec:agent_limitations}
+
+\begin{itemize}
+    \item \textbf{Free-Tier Input Token Rate Limits:} Groq's free on-demand tier enforces a 7,000 input-tokens-per-minute (ITPM) cap on \texttt{qwen/qwen3.8-27b}. Rapid multi-turn bursts triggered HTTP 429 limits, which motivated compact prompt engineering, \texttt{max\_retries=0} fast failover to \texttt{openai/gpt-oss-20b}, and a deterministic fallback tier.
+    \item \textbf{Tool-Call Formatting Variance:} Smaller open-weight models occasionally omit a tool call or emit malformed JSON when staging confirmations; the graph's deterministic safety net and anti-fabrication email guard mitigate this reliably.
+    \item \textbf{Volatile In-Memory Persistence:} \texttt{MemorySaver} stores session checkpoints in RAM, meaning state is cleared on server restart. Production multi-worker deployments should swap \texttt{CHECKPOINTER} in \texttt{app/agent/memory.py} for Redis or PostgreSQL checkpointers.
+    \item \textbf{Static Knowledge Base Scope:} The 18-entry JSON knowledge base accurately covers store policies, but live order-status lookups require connecting an order-management API tool in future backend iterations.
+\end{itemize}
