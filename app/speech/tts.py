@@ -219,6 +219,14 @@ async def synthesize(text: str, voice: str = "female", provider: Optional[str] =
     active_provider = (provider or TTS_PROVIDER).lower().strip()
     cache_key = (active_provider, voice, cleaned)
 
+    logger.info(
+        "Synthesizing audio: provider=%s (requested=%s, default=%s), voice=%s",
+        active_provider,
+        provider,
+        TTS_PROVIDER,
+        voice,
+    )
+
     if cache_key in _TTS_CACHE:
         return _TTS_CACHE[cache_key]
 
@@ -245,10 +253,11 @@ async def synthesize(text: str, voice: str = "female", provider: Optional[str] =
 async def warmup_tts_cache():
     """
     Pre-warms the cache for common fixed responses to ensure ultra-low latency.
+    Always uses Edge-TTS to avoid consuming third-party API quotas during startup.
     """
     for v in ["female", "male"]:
         for phrase in [UNCLEAR_SPEECH_REPLY, GREETING_REPLY]:
             try:
-                await synthesize(phrase, voice=v)
+                await synthesize(phrase, voice=v, provider="edge")
             except Exception as e:
                 logger.warning(f"Warmup synthesis failed for '{phrase[:15]}': {e}")

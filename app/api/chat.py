@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Optional
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from app.agent import agent, arun_agent

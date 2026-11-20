@@ -119,6 +119,7 @@ async def demo_voice_turn(
     audio: UploadFile = File(...),
     voice: str = Form(DEFAULT_VOICE),
     session_id: str = Form("demo_session"),
+    tts_provider: Optional[str] = Form(None),
 ):
     """
     Executes a complete end-to-end voice turn with the stub LLM agent.
@@ -139,6 +140,7 @@ async def demo_voice_turn(
         voice=voice,
         session_id=session_id,
         agent_fn=stub_agent,
+        tts_provider=tts_provider,
     )
 
     return turn_result

@@ -291,6 +291,8 @@ async function sendVoiceTurn(audioBlob, mimeType) {
     }
     formData.append("session_id", sessionId);
 
+    console.log("🎙️ Sending voice turn -> provider:", ttsProviderSelect ? ttsProviderSelect.value : "none", "voice:", voiceSelect.value);
+
     const response = await fetch(VOICE_ENDPOINT, {
       method: "POST",
       body: formData,
@@ -366,6 +368,8 @@ textForm.addEventListener("submit", async (e) => {
     const replyText = chat.response || "";
     appendMessage("agent", replyText);
     const tLlm = performance.now();
+
+    console.log("💬 Sending text turn -> provider:", ttsProviderSelect ? ttsProviderSelect.value : "none", "voice:", voiceSelect.value);
 
     // 2) Speak the agent's reply
     const res = await fetch(TTS_ENDPOINT, {
