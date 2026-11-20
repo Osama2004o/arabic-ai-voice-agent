@@ -23,6 +23,19 @@ OPTIONAL_MSA_VOICES = {
     "male_msa": "ar-SA-HamedNeural",
 }
 
+# ElevenLabs Configuration (Free Tier supported: eleven_multilingual_v2, eleven_flash_v2_5)
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
+ELEVENLABS_MODEL_ID = os.getenv("ELEVENLABS_MODEL_ID", "eleven_multilingual_v2")
+ELEVENLABS_FEMALE_VOICE_ID = os.getenv("ELEVENLABS_VOICE_FEMALE", "EXAVITQu4vr4xnSDxMaL")  # Sarah (Free tier pre-made)
+ELEVENLABS_DEFAULT_VOICE_ID = os.getenv("ELEVENLABS_VOICE_MALE") or os.getenv("ELEVENLABS_VOICE_ID", "pNInz6obpgDQGcFmaJgB")  # Adam (Free tier pre-made)
+
+ELEVENLABS_VOICES = {
+    "female": ELEVENLABS_FEMALE_VOICE_ID,
+    "female_msa": os.getenv("ELEVENLABS_VOICE_FEMALE_MSA", ELEVENLABS_FEMALE_VOICE_ID),
+    "male": ELEVENLABS_DEFAULT_VOICE_ID,
+    "male_msa": os.getenv("ELEVENLABS_VOICE_MALE_MSA", ELEVENLABS_DEFAULT_VOICE_ID),
+}
+
 # STT Egyptian-flavored hint to bias Whisper
 STT_PROMPT = "ازيك، عايز أسأل عن الطلب بتاعي، الشكوى، الدفع، الشحن، الاسترجاع."
 

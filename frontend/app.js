@@ -15,6 +15,7 @@ const micBtn = document.getElementById("micBtn");
 const micHint = document.getElementById("micHint");
 const statusIndicator = document.querySelector(".status-indicator");
 const statusText = document.getElementById("statusText");
+const ttsProviderSelect = document.getElementById("ttsProviderSelect");
 const voiceSelect = document.getElementById("voiceSelect");
 const chatMessages = document.getElementById("chatMessages");
 const replyAudio = document.getElementById("replyAudio");
@@ -53,6 +54,42 @@ const sessionStats = {
   turns: 0,
   clientLatencies: [],
 };
+
+// Available Voices by Provider
+const VOICE_OPTIONS = {
+  elevenlabs: [
+    { value: "female", label: "أنثوي — سارة (إيلفن لابس)" },
+    { value: "male", label: "ذكوري — آدم (إيلفن لابس)" },
+  ],
+  edge: [
+    { value: "female", label: "أنثوي — سلمى (لهجة مصرية)" },
+    { value: "male", label: "ذكوري — شاكر (لهجة مصرية)" },
+    { value: "female_msa", label: "أنثوي — زارية (فصحى)" },
+    { value: "male_msa", label: "ذكوري — حامد (فصحى)" },
+  ],
+};
+
+function updateVoiceDropdown(provider) {
+  if (!voiceSelect || !VOICE_OPTIONS[provider]) return;
+  const currentVal = voiceSelect.value;
+  voiceSelect.innerHTML = "";
+  VOICE_OPTIONS[provider].forEach((v) => {
+    const opt = document.createElement("option");
+    opt.value = v.value;
+    opt.textContent = v.label;
+    if (v.value === currentVal) opt.selected = true;
+    voiceSelect.appendChild(opt);
+  });
+  if (!voiceSelect.value && voiceSelect.options.length > 0) {
+    voiceSelect.options[0].selected = true;
+  }
+}
+
+if (ttsProviderSelect) {
+  ttsProviderSelect.addEventListener("change", () => {
+    updateVoiceDropdown(ttsProviderSelect.value);
+  });
+}
 
 // Select supported MIME type
 function getSupportedMimeType() {
@@ -249,6 +286,9 @@ async function sendVoiceTurn(audioBlob, mimeType) {
     const ext = mimeType.includes("mp4") ? "mp4" : "webm";
     formData.append("audio", audioBlob, `recording.${ext}`);
     formData.append("voice", voiceSelect.value);
+    if (ttsProviderSelect) {
+      formData.append("tts_provider", ttsProviderSelect.value);
+    }
     formData.append("session_id", sessionId);
 
     const response = await fetch(VOICE_ENDPOINT, {
@@ -331,7 +371,11 @@ textForm.addEventListener("submit", async (e) => {
     const res = await fetch(TTS_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: replyText, voice: voiceSelect.value }),
+      body: JSON.stringify({
+        text: replyText,
+        voice: voiceSelect.value,
+        provider: ttsProviderSelect ? ttsProviderSelect.value : undefined,
+      }),
     });
     if (!res.ok) throw new Error("TTS failed");
 

@@ -7,6 +7,8 @@ from .config import (
     VOICES,
     OPTIONAL_MSA_VOICES,
     DEFAULT_VOICE,
+    TTS_PROVIDER,
+    ELEVENLABS_VOICES,
     MIN_AUDIO_BYTES,
     MAX_AUDIO_BYTES,
 )
@@ -23,6 +25,7 @@ router = APIRouter(prefix="/speech", tags=["speech"])
 class TTSRequest(BaseModel):
     text: str
     voice: Optional[str] = DEFAULT_VOICE
+    provider: Optional[str] = None
 
 
 @router.post("/stt")
@@ -60,7 +63,7 @@ async def text_to_speech(req: TTSRequest):
     if not req.text or not req.text.strip():
         raise HTTPException(status_code=400, detail="Text parameter cannot be empty.")
 
-    audio_bytes = await synthesize(req.text, voice=req.voice or DEFAULT_VOICE)
+    audio_bytes = await synthesize(req.text, voice=req.voice or DEFAULT_VOICE, provider=req.provider)
     if not audio_bytes:
         raise HTTPException(status_code=500, detail="TTS synthesis failed to produce audio.")
 
@@ -68,38 +71,42 @@ async def text_to_speech(req: TTSRequest):
 
 
 @router.get("/voices")
-async def get_available_voices():
+async def get_available_voices(provider: Optional[str] = None):
     """
     Returns available Arabic voices for male and female selection.
     """
+    active_provider = (provider or TTS_PROVIDER).lower().strip()
+    is_eleven = active_provider == "elevenlabs"
     return {
+        "provider": active_provider,
         "default": DEFAULT_VOICE,
+        "providers": ["elevenlabs", "edge"],
         "voices": [
             {
                 "id": "female",
-                "label": "أنثوي — سلمى (لهجة مصرية)",
-                "voice_id": VOICES["female"],
-                "dialect": "Egyptian Arabic",
+                "label": "أنثوي — سارة (إيلفن لابس)" if is_eleven else "أنثوي — سلمى (لهجة مصرية)",
+                "voice_id": ELEVENLABS_VOICES["female"] if is_eleven else VOICES["female"],
+                "dialect": "Arabic" if is_eleven else "Egyptian Arabic",
                 "gender": "Female",
             },
             {
                 "id": "male",
-                "label": "ذكوري — شاكر (لهجة مصرية)",
-                "voice_id": VOICES["male"],
-                "dialect": "Egyptian Arabic",
+                "label": "ذكوري — آدم (إيلفن لابس)" if is_eleven else "ذكوري — شاكر (لهجة مصرية)",
+                "voice_id": ELEVENLABS_VOICES["male"] if is_eleven else VOICES["male"],
+                "dialect": "Arabic" if is_eleven else "Egyptian Arabic",
                 "gender": "Male",
             },
             {
                 "id": "female_msa",
-                "label": "أنثوي — زارية (فصحى)",
-                "voice_id": OPTIONAL_MSA_VOICES["female_msa"],
+                "label": "أنثوي — سارة (فصحى)" if is_eleven else "أنثوي — زارية (فصحى)",
+                "voice_id": ELEVENLABS_VOICES["female_msa"] if is_eleven else OPTIONAL_MSA_VOICES["female_msa"],
                 "dialect": "Modern Standard Arabic",
                 "gender": "Female",
             },
             {
                 "id": "male_msa",
-                "label": "ذكوري — حامد (فصحى)",
-                "voice_id": OPTIONAL_MSA_VOICES["male_msa"],
+                "label": "ذكوري — آدم (فصحى)" if is_eleven else "ذكوري — حامد (فصحى)",
+                "voice_id": ELEVENLABS_VOICES["male_msa"] if is_eleven else OPTIONAL_MSA_VOICES["male_msa"],
                 "dialect": "Modern Standard Arabic",
                 "gender": "Male",
             },

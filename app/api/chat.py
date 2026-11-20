@@ -27,6 +27,7 @@ async def chat_voice(
     audio: UploadFile = File(..., description="Recorded speech (webm/ogg/wav/mp3)."),
     voice: str = Form(DEFAULT_VOICE),
     session_id: str = Form("default_session", max_length=128),
+    tts_provider: Optional[str] = Form(None),
 ):
     """Full voice turn: STT -> agent -> TTS, with per-stage latency."""
     if voice not in SUPPORTED_VOICES:
@@ -42,4 +43,5 @@ async def chat_voice(
         voice=voice,
         session_id=session_id,
         agent_fn=agent.respond,
+        tts_provider=tts_provider,
     )
