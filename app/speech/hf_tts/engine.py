@@ -122,8 +122,8 @@ class TinyVocaEngine:
             pitch_shift = 2.5
             pitch_range = 1.1
         else:
-            pitch_shift = 0.0
-            pitch_range = 1.0
+            pitch_shift = -11.0
+            pitch_range = 0.55
 
         if cleaned[-1] not in ".!?؟…":
             cleaned += "."
