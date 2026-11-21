@@ -28,8 +28,8 @@ An intelligent, real-time Arabic voice assistant capable of understanding spoken
 [Agent Reasoning: LangGraph / LLM Stub] (≤ 1.0s)
       │ (Strict store guardrails, 1-3 short plain Arabic sentences)
       ▼
-[TTS Engine: ElevenLabs / Edge-TTS] (≤ 0.8s)
-      │ (ElevenLabs: Sarah/Adam | Edge: Salma/Shakir MP3 Audio)
+[TTS Engine: ElevenLabs / Edge-TTS / Hugging Face CPU] (≤ 0.8s)
+      │ (ElevenLabs: Sarah/Adam | Edge: Salma/Shakir | HF: TinyVoca)
       ▼
 [Browser Speaker + Live Latency Display] (< 3.0s Total)
 ```
@@ -37,10 +37,10 @@ An intelligent, real-time Arabic voice assistant capable of understanding spoken
 ### Key Technical Highlights:
 - **Ultra-Fast STT:** Primary speech-to-text powered by Groq's LPU-accelerated `whisper-large-v3-turbo` with Egyptian vocabulary biasing and an automatic local `faster-whisper` (`small`, int8 CPU) fallback.
 - **Silence & Hallucination Guard:** Rejects silence and suppresses common Whisper hallucinations (`no_speech_prob > 0.6` filtering), safely responding with a polite retry prompt without overwhelming the LLM agent.
-- **Dual Arabic TTS Engines:** High-fidelity speech synthesis supporting both **ElevenLabs** (`eleven_multilingual_v2` with Sarah & Adam voices) and **Microsoft Edge-TTS** (`ar-EG-SalmaNeural` & `ar-EG-ShakirNeural`). Features markdown stripping, numeral spacing, and automatic fallback to Edge-TTS if ElevenLabs quota is exhausted.
+- **Multi-Provider Arabic TTS:** High-fidelity speech synthesis supporting **ElevenLabs** (`eleven_multilingual_v2`), **Microsoft Edge-TTS** (`ar-EG-SalmaNeural` & `ar-EG-ShakirNeural`), and offline CPU **Hugging Face** (`oddadmix/tiny-voca-arabic`). Features automatic fallback to Edge-TTS if quotas are exhausted.
 - **Strict Domain Guardrails:** LangGraph agent strictly stays in-character for e-commerce customer service and politely deflects general-knowledge or out-of-domain queries.
 - **In-Memory Audio Caching:** Pre-caches recurring system phrases (greetings, retry prompts) for sub-millisecond audio delivery.
-- **Real-Time RTL Web UI:** Built with vanilla HTML5/CSS3/JS with dynamic TTS engine switching (ElevenLabs / Edge-TTS) and voice selection. Measures and reports real client-side end-to-end latency clock ($t_{\text{playing}} - t_{\text{stop recording}}$) with a live visual badge against the 3.0s target.
+- **Real-Time RTL Web UI:** Built with vanilla HTML5/CSS3/JS with dynamic 3-engine TTS switching (ElevenLabs / Edge-TTS / Hugging Face) and voice selection. Measures and reports real client-side end-to-end latency clock ($t_{\text{playing}} - t_{\text{stop recording}}$) with a live visual badge against the 3.0s target.
 
 ---
 
@@ -103,7 +103,7 @@ pip install -r requirements-dev.txt   # or requirements.txt for runtime only
 cp .env.example .env
 ```
 Fill in at least `GROQ_API_KEY` / `OPENROUTER_API_KEY`.
-- **TTS Engine:** Choose `TTS_PROVIDER=elevenlabs` (with `ELEVENLABS_API_KEY`) or `TTS_PROVIDER=edge` (free, zero setup).
+- **TTS Engine:** Choose `TTS_PROVIDER=huggingface` (offline CPU), `TTS_PROVIDER=edge` (free, zero setup), or `TTS_PROVIDER=elevenlabs` (with `ELEVENLABS_API_KEY`).
 - **Email and Telegram:** Optional. When not configured, the agent runs in "simulated" mode and logs sends. See [Email and Telegram setup](#-email-and-telegram-setup).
 
 ---
@@ -119,7 +119,7 @@ Open your browser at **`http://localhost:8000`**.
 1. Click the **Microphone** button to speak in Arabic (Egyptian colloquial or MSA).
 2. Click again to stop.
 3. The assistant will transcribe your speech, generate an answer, and speak it aloud immediately.
-4. Select between **ElevenLabs** and **Edge-TTS** engines, and choose your preferred voice (**Female** or **Male**) in the top header.
+4. Select between **Hugging Face CPU**, **ElevenLabs**, and **Edge-TTS** engines, and choose your preferred voice (**Female** or **Male**) in the top header.
 5. Inspect the live **Latency Panel** on the right side to verify stage-by-stage timings and whether the turn met the **< 3.0s** standard.
 
 ---
@@ -132,7 +132,7 @@ Interactive docs: **`http://localhost:8000/docs`**
 |---|---|---|
 | `GET` | `/health` | Status, version, and which integrations are live |
 | `POST` | `/chat/text` | `{"text": "...", "session_id": "...", "tts_provider": "..."}` → agent reply, action, confirmation flags |
-| `POST` | `/chat/voice` | multipart `audio`, `voice` (`female`/`male`), `tts_provider` (`edge`/`elevenlabs`), `session_id` → transcript, reply, base64 MP3, timings |
+| `POST` | `/chat/voice` | multipart `audio`, `voice` (`female`/`male`), `tts_provider` (`edge`/`elevenlabs`/`huggingface`), `session_id` → transcript, reply, base64 audio, timings |
 | `POST` | `/send-email` | `{"to", "subject", "body"}` — requires `X-API-Key` |
 | `POST` | `/send-telegram` | `{"message"}` — requires `X-API-Key` |
 | `POST` | `/speech/stt` | Speech-to-text stage |
@@ -161,7 +161,7 @@ the agent, are rate-limited (`NOTIFY_RATE_LIMIT_PER_MIN`). `EMAIL_ALLOWED_DOMAIN
 
 ## 🔊 Text-to-Speech (TTS) Setup
 
-The application supports dual TTS providers configurable via `.env` or selectable live per-turn from the web UI:
+The application supports three distinct TTS engines, configurable via `.env` or switched dynamically live from the web UI:
 
 ### 1. Microsoft Edge-TTS (Free & Unlimited)
 - **Zero API keys required.** High-quality neural Arabic voices streamed over WebSocket.
@@ -189,6 +189,17 @@ The application supports dual TTS providers configurable via `.env` or selectabl
   ELEVENLABS_VOICE_MALE=pNInz6obpgDQGcFmaJgB
   ```
 - **Automatic Quota Protection & Fallback:** If `ELEVENLABS_API_KEY` is missing or character quotas are exceeded, the pipeline automatically and transparently falls back to Edge-TTS. In addition, startup audio cache warmup uses Edge-TTS to conserve ElevenLabs quota.
+
+### 3. Hugging Face CPU (TinyVoca Arabic)
+- **100% Offline & Free:** Ultra-compact 4.5M parameter Modern Standard Arabic TTS model (`oddadmix/tiny-voca-arabic`) running completely on local CPU via ONNX Runtime.
+- Built-in CATT diacritizer transformer and source-filter waveform synthesizer: zero external API quota, zero network latency.
+- Outputs 24 kHz mono 16-bit WAV audio in ~200-500ms on standard CPU.
+- In `.env`:
+  ```ini
+  TTS_PROVIDER=huggingface
+  HF_TTS_MODEL=oddadmix/tiny-voca-arabic
+  DEFAULT_VOICE=female
+  ```
 
 ---
 

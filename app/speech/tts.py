@@ -17,6 +17,7 @@ from .config import (
     GREETING_REPLY,
 )
 from .text_utils import clean_text_for_tts
+from .hf_tts import synthesize_hf, warmup_hf
 
 logger = logging.getLogger("speech.tts")
 
@@ -179,6 +180,20 @@ async def synthesize_stream(text: str, voice: str = "female", provider: Optional
         yield _TTS_CACHE[cache_key]
         return
 
+    if active_provider in ("huggingface", "hf"):
+        try:
+            audio = await asyncio.to_thread(synthesize_hf, cleaned, voice)
+            if audio:
+                chunk_size = 4096
+                for i in range(0, len(audio), chunk_size):
+                    yield audio[i:i + chunk_size]
+                if len(_TTS_CACHE) < _MAX_CACHE_ENTRIES:
+                    _TTS_CACHE[cache_key] = audio
+                return
+        except Exception as e:
+            logger.warning("Hugging Face streaming error: %s", e)
+        logger.warning("Hugging Face streaming produced no audio. Falling back to Edge-TTS.")
+
     if active_provider == "elevenlabs":
         got_chunks = False
         chunks = []
@@ -230,6 +245,17 @@ async def synthesize(text: str, voice: str = "female", provider: Optional[str] =
     if cache_key in _TTS_CACHE:
         return _TTS_CACHE[cache_key]
 
+    if active_provider in ("huggingface", "hf"):
+        try:
+            audio = await asyncio.to_thread(synthesize_hf, cleaned, voice)
+            if audio:
+                if len(_TTS_CACHE) < _MAX_CACHE_ENTRIES:
+                    _TTS_CACHE[cache_key] = audio
+                return audio
+        except Exception as e:
+            logger.warning("Hugging Face synthesis error: %s", e)
+        logger.warning("Hugging Face synthesis failed or unavailable. Falling back to Edge-TTS.")
+
     if active_provider == "elevenlabs":
         audio = await _synthesize_elevenlabs(cleaned, voice)
         if audio:
@@ -255,6 +281,12 @@ async def warmup_tts_cache():
     Pre-warms the cache for common fixed responses to ensure ultra-low latency.
     Always uses Edge-TTS to avoid consuming third-party API quotas during startup.
     """
+    # Pre-load local Hugging Face CPU model to prevent first-turn latency
+    try:
+        await asyncio.to_thread(warmup_hf)
+    except Exception as e:
+        logger.warning(f"HF warmup failed: {e}")
+
     for v in ["female", "male"]:
         for phrase in [UNCLEAR_SPEECH_REPLY, GREETING_REPLY]:
             try:

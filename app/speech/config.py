@@ -36,6 +36,15 @@ ELEVENLABS_VOICES = {
     "male_msa": os.getenv("ELEVENLABS_VOICE_MALE_MSA", ELEVENLABS_DEFAULT_VOICE_ID),
 }
 
+# Hugging Face TTS Configuration (local CPU model oddadmix/tiny-voca-arabic)
+HF_TTS_MODEL = os.getenv("HF_TTS_MODEL", "oddadmix/tiny-voca-arabic")
+HF_VOICES = {
+    "female": "tiny-voca-arabic-female",
+    "female_msa": "tiny-voca-arabic-female",
+    "male": "tiny-voca-arabic-male",
+    "male_msa": "tiny-voca-arabic-male",
+}
+
 # STT Egyptian-flavored hint to bias Whisper
 STT_PROMPT = "ازيك، عايز أسأل عن الطلب بتاعي، الشكوى، الدفع، الشحن، الاسترجاع."
 

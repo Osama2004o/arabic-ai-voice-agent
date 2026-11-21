@@ -67,10 +67,12 @@ async def run_voice_turn(
 
     audio_b64 = base64.b64encode(audio_mp3_bytes).decode("ascii") if audio_mp3_bytes else ""
 
+    audio_mime = "audio/wav" if audio_mp3_bytes.startswith(b"RIFF") else "audio/mpeg"
+
     return {
         "transcript": transcript,
         "reply_text": reply_text,
         "audio_base64": audio_b64,
-        "audio_mime": "audio/mpeg",
+        "audio_mime": audio_mime,
         "timings_ms": timings,
     }
