@@ -20,7 +20,7 @@ TATWEEL_PATTERN = re.compile(r"\u0640")
 PUNCTUATION_PATTERN = re.compile(r"[!\"#$%&\'()*+,-./:;<=>?@\[\\\]^_`{|}~،؛؟«»—–…\n\r\t]")
 
 
-def clean_text_for_tts(text: str, max_chars: int = 150) -> str:
+def clean_text_for_tts(text: str, max_chars: int = 1000) -> str:
     """
     Cleans agent reply text to optimize for natural and low-latency Arabic TTS.
     - Strips markdown formatting (bold, italic, headers, backticks, bullets)
