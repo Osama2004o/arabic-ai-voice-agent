@@ -26,20 +26,21 @@ An intelligent, real-time Arabic voice assistant capable of understanding spoken
       │ (Biased with Egyptian customer-service prompt)
       ▼
 [Agent Reasoning: LangGraph / LLM Stub] (≤ 1.0s)
-      │ (1-3 short plain Arabic sentences)
+      │ (Strict store guardrails, 1-3 short plain Arabic sentences)
       ▼
-[TTS Engine: Edge-TTS Neural Egyptian Voice] (≤ 0.8s)
-      │ (Salma / Shakir MP3 Audio)
+[TTS Engine: ElevenLabs / Edge-TTS] (≤ 0.8s)
+      │ (ElevenLabs: Sarah/Adam | Edge: Salma/Shakir MP3 Audio)
       ▼
 [Browser Speaker + Live Latency Display] (< 3.0s Total)
 ```
 
 ### Key Technical Highlights:
 - **Ultra-Fast STT:** Primary speech-to-text powered by Groq's LPU-accelerated `whisper-large-v3-turbo` with Egyptian vocabulary biasing and an automatic local `faster-whisper` (`small`, int8 CPU) fallback.
-- **Silence & Hallucination Guard:** Rejects silence and suppress common Whisper hallucinations (`no_speech_prob > 0.6` filtering), safely responding with a polite retry prompt without overwhelming the LLM agent.
-- **Natural Arabic TTS:** High-fidelity Egyptian voices (`ar-EG-SalmaNeural` for female, `ar-EG-ShakirNeural` for male) streamed via `edge-tts` with markdown stripping, emoji removal, and numeral spacing for clear reading.
+- **Silence & Hallucination Guard:** Rejects silence and suppresses common Whisper hallucinations (`no_speech_prob > 0.6` filtering), safely responding with a polite retry prompt without overwhelming the LLM agent.
+- **Dual Arabic TTS Engines:** High-fidelity speech synthesis supporting both **ElevenLabs** (`eleven_multilingual_v2` with Sarah & Adam voices) and **Microsoft Edge-TTS** (`ar-EG-SalmaNeural` & `ar-EG-ShakirNeural`). Features markdown stripping, numeral spacing, and automatic fallback to Edge-TTS if ElevenLabs quota is exhausted.
+- **Strict Domain Guardrails:** LangGraph agent strictly stays in-character for e-commerce customer service and politely deflects general-knowledge or out-of-domain queries.
 - **In-Memory Audio Caching:** Pre-caches recurring system phrases (greetings, retry prompts) for sub-millisecond audio delivery.
-- **Real-Time RTL Web UI:** Built with pure vanilla HTML5/CSS3/JS (no heavy framework build step). Measures and reports real client-side end-to-end latency clock ($t_{\text{playing}} - t_{\text{stop recording}}$) with a live visual badge against the 3.0s target.
+- **Real-Time RTL Web UI:** Built with vanilla HTML5/CSS3/JS with dynamic TTS engine switching (ElevenLabs / Edge-TTS) and voice selection. Measures and reports real client-side end-to-end latency clock ($t_{\text{playing}} - t_{\text{stop recording}}$) with a live visual badge against the 3.0s target.
 
 ---
 
@@ -101,9 +102,9 @@ pip install -r requirements-dev.txt   # or requirements.txt for runtime only
 ```bash
 cp .env.example .env
 ```
-Fill in at least `GROQ_API_KEY` / `OPENROUTER_API_KEY`. Email and Telegram are optional:
-when they are not configured the agent still works and only *logs* the send ("simulated" mode).
-See [Email and Telegram setup](#-email-and-telegram-setup).
+Fill in at least `GROQ_API_KEY` / `OPENROUTER_API_KEY`.
+- **TTS Engine:** Choose `TTS_PROVIDER=elevenlabs` (with `ELEVENLABS_API_KEY`) or `TTS_PROVIDER=edge` (free, zero setup).
+- **Email and Telegram:** Optional. When not configured, the agent runs in "simulated" mode and logs sends. See [Email and Telegram setup](#-email-and-telegram-setup).
 
 ---
 
@@ -118,7 +119,7 @@ Open your browser at **`http://localhost:8000`**.
 1. Click the **Microphone** button to speak in Arabic (Egyptian colloquial or MSA).
 2. Click again to stop.
 3. The assistant will transcribe your speech, generate an answer, and speak it aloud immediately.
-4. Select between **Female (Salma)** and **Male (Shakir)** voices at the top.
+4. Select between **ElevenLabs** and **Edge-TTS** engines, and choose your preferred voice (**Female** or **Male**) in the top header.
 5. Inspect the live **Latency Panel** on the right side to verify stage-by-stage timings and whether the turn met the **< 3.0s** standard.
 
 ---
@@ -130,12 +131,13 @@ Interactive docs: **`http://localhost:8000/docs`**
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/health` | Status, version, and which integrations are live |
-| `POST` | `/chat/text` | `{"text": "...", "session_id": "..."}` → agent reply, action, confirmation flags |
-| `POST` | `/chat/voice` | multipart `audio`, `voice` (`female`/`male`/`female_msa`/`male_msa`), `session_id` → transcript, reply, base64 MP3, timings |
+| `POST` | `/chat/text` | `{"text": "...", "session_id": "...", "tts_provider": "..."}` → agent reply, action, confirmation flags |
+| `POST` | `/chat/voice` | multipart `audio`, `voice` (`female`/`male`), `tts_provider` (`edge`/`elevenlabs`), `session_id` → transcript, reply, base64 MP3, timings |
 | `POST` | `/send-email` | `{"to", "subject", "body"}` — requires `X-API-Key` |
 | `POST` | `/send-telegram` | `{"message"}` — requires `X-API-Key` |
-| `POST` | `/speech/stt`, `/speech/tts` | Individual speech stages |
-| `GET` | `/speech/voices` | Available voices |
+| `POST` | `/speech/stt` | Speech-to-text stage |
+| `POST` | `/speech/tts` | Text-to-speech stage with `provider` (`edge` or `elevenlabs`) and `voice` |
+| `GET` | `/speech/voices` | Available voices; accepts `?provider=...` query param and returns list of supported providers |
 | `POST` | `/speech/demo-turn` | Voice turn with the stub LLM (testing only) |
 
 ```bash
@@ -154,6 +156,39 @@ the agent tells the customer instead of claiming success.
 **Security:** `/send-email` and `/send-telegram` require the `X-API-Key` header when `API_KEY` is set
 (in `APP_ENV=production` they refuse every request until it is set). All sends, including those triggered by
 the agent, are rate-limited (`NOTIFY_RATE_LIMIT_PER_MIN`). `EMAIL_ALLOWED_DOMAINS` can restrict recipients.
+
+---
+
+## 🔊 Text-to-Speech (TTS) Setup
+
+The application supports dual TTS providers configurable via `.env` or selectable live per-turn from the web UI:
+
+### 1. Microsoft Edge-TTS (Free & Unlimited)
+- **Zero API keys required.** High-quality neural Arabic voices streamed over WebSocket.
+- Voices:
+  - Female: `ar-EG-SalmaNeural` (Egyptian)
+  - Male: `ar-EG-ShakirNeural` (Egyptian)
+- In `.env`:
+  ```ini
+  TTS_PROVIDER=edge
+  DEFAULT_VOICE=female
+  ```
+
+### 2. ElevenLabs (High-Fidelity Neural)
+- Ultra-natural synthetic voices using the `eleven_multilingual_v2` model.
+- **Free Tier Requirement:** Free accounts must use pre-made default voices. Community/Library voices are restricted by ElevenLabs to paid plans (HTTP 402).
+- Supported pre-made voices:
+  - Female: **Sarah** (`EXAVITQu4vr4xnSDxMaL`)
+  - Male: **Adam** (`pNInz6obpgDQGcFmaJgB`)
+- In `.env`:
+  ```ini
+  TTS_PROVIDER=elevenlabs
+  ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+  ELEVENLABS_MODEL_ID=eleven_multilingual_v2
+  ELEVENLABS_VOICE_FEMALE=EXAVITQu4vr4xnSDxMaL
+  ELEVENLABS_VOICE_MALE=pNInz6obpgDQGcFmaJgB
+  ```
+- **Automatic Quota Protection & Fallback:** If `ELEVENLABS_API_KEY` is missing or character quotas are exceeded, the pipeline automatically and transparently falls back to Edge-TTS. In addition, startup audio cache warmup uses Edge-TTS to conserve ElevenLabs quota.
 
 ---
 
