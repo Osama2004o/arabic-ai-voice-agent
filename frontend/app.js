@@ -67,6 +67,10 @@ const VOICE_OPTIONS = {
     { value: "female_msa", label: "أنثوي — زارية (فصحى)" },
     { value: "male_msa", label: "ذكوري — حامد (فصحى)" },
   ],
+  huggingface: [
+    { value: "female", label: "أنثوي — فصحى (TinyVoca)" },
+    { value: "male", label: "ذكوري — فصحى (TinyVoca)" },
+  ],
 };
 
 function updateVoiceDropdown(provider) {
