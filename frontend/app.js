@@ -1,8 +1,9 @@
 // Voice Pipeline & UI - Member 1
 // Target Latency: < 3.0s (End of Speech -> Beginning of Audio Response)
 
-const VOICE_ENDPOINT = "/speech/demo-turn";
+const VOICE_ENDPOINT = "/chat/voice"; // real LangGraph agent (stub test route: /speech/demo-turn)
 const TTS_ENDPOINT = "/speech/tts";
+const TEXT_CHAT_ENDPOINT = "/chat/text";
 
 // Session persistence across turns
 const sessionId = (typeof crypto !== "undefined" && crypto.randomUUID)
@@ -14,6 +15,7 @@ const micBtn = document.getElementById("micBtn");
 const micHint = document.getElementById("micHint");
 const statusIndicator = document.querySelector(".status-indicator");
 const statusText = document.getElementById("statusText");
+const ttsProviderSelect = document.getElementById("ttsProviderSelect");
 const voiceSelect = document.getElementById("voiceSelect");
 const chatMessages = document.getElementById("chatMessages");
 const replyAudio = document.getElementById("replyAudio");
@@ -52,6 +54,46 @@ const sessionStats = {
   turns: 0,
   clientLatencies: [],
 };
+
+// Available Voices by Provider
+const VOICE_OPTIONS = {
+  elevenlabs: [
+    { value: "female", label: "أنثوي — سارة (إيلفن لابس)" },
+    { value: "male", label: "ذكوري — آدم (إيلفن لابس)" },
+  ],
+  edge: [
+    { value: "female", label: "أنثوي — سلمى (لهجة مصرية)" },
+    { value: "male", label: "ذكوري — شاكر (لهجة مصرية)" },
+    { value: "female_msa", label: "أنثوي — زارية (فصحى)" },
+    { value: "male_msa", label: "ذكوري — حامد (فصحى)" },
+  ],
+  huggingface: [
+    { value: "female", label: "أنثوي — فصحى (TinyVoca)" },
+    { value: "male", label: "ذكوري — فصحى (TinyVoca)" },
+  ],
+};
+
+function updateVoiceDropdown(provider) {
+  if (!voiceSelect || !VOICE_OPTIONS[provider]) return;
+  const currentVal = voiceSelect.value;
+  voiceSelect.innerHTML = "";
+  VOICE_OPTIONS[provider].forEach((v) => {
+    const opt = document.createElement("option");
+    opt.value = v.value;
+    opt.textContent = v.label;
+    if (v.value === currentVal) opt.selected = true;
+    voiceSelect.appendChild(opt);
+  });
+  if (!voiceSelect.value && voiceSelect.options.length > 0) {
+    voiceSelect.options[0].selected = true;
+  }
+}
+
+if (ttsProviderSelect) {
+  ttsProviderSelect.addEventListener("change", () => {
+    updateVoiceDropdown(ttsProviderSelect.value);
+  });
+}
 
 // Select supported MIME type
 function getSupportedMimeType() {
@@ -248,7 +290,12 @@ async function sendVoiceTurn(audioBlob, mimeType) {
     const ext = mimeType.includes("mp4") ? "mp4" : "webm";
     formData.append("audio", audioBlob, `recording.${ext}`);
     formData.append("voice", voiceSelect.value);
+    if (ttsProviderSelect) {
+      formData.append("tts_provider", ttsProviderSelect.value);
+    }
     formData.append("session_id", sessionId);
+
+    console.log("🎙️ Sending voice turn -> provider:", ttsProviderSelect ? ttsProviderSelect.value : "none", "voice:", voiceSelect.value);
 
     const response = await fetch(VOICE_ENDPOINT, {
       method: "POST",
@@ -314,22 +361,40 @@ textForm.addEventListener("submit", async (e) => {
   const t0 = performance.now();
 
   try {
-    // Call TTS endpoint for text fallback
+    // 1) Ask the agent (same session as voice turns, so context is shared)
+    const chatRes = await fetch(TEXT_CHAT_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, session_id: sessionId }),
+    });
+    if (!chatRes.ok) throw new Error(`Agent failed: ${chatRes.status}`);
+    const chat = await chatRes.json();
+    const replyText = chat.response || "";
+    appendMessage("agent", replyText);
+    const tLlm = performance.now();
+
+    console.log("💬 Sending text turn -> provider:", ttsProviderSelect ? ttsProviderSelect.value : "none", "voice:", voiceSelect.value);
+
+    // 2) Speak the agent's reply
     const res = await fetch(TTS_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, voice: voiceSelect.value }),
+      body: JSON.stringify({
+        text: replyText,
+        voice: voiceSelect.value,
+        provider: ttsProviderSelect ? ttsProviderSelect.value : undefined,
+      }),
     });
-
     if (!res.ok) throw new Error("TTS failed");
 
     const audioBlob = await res.blob();
     const audioUrl = URL.createObjectURL(audioBlob);
 
+    const llmMs = Math.round(tLlm - t0);
+    const ttsMs = Math.round(performance.now() - tLlm);
     const clientSec = (performance.now() - t0) / 1000.0;
-    updateMetrics({ stt: 0, llm: 0, tts: Math.round(clientSec * 1000), server_total: Math.round(clientSec * 1000) }, clientSec);
+    updateMetrics({ stt: 0, llm: llmMs, tts: ttsMs, server_total: llmMs + ttsMs }, clientSec);
 
-    appendMessage("agent", text);
     replyAudio.src = audioUrl;
     await replyAudio.play();
   } catch (err) {

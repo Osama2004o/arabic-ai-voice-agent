@@ -1,0 +1,3 @@
+# Keep Unix line endings for files executed inside Linux/Git Bash
+*.sh text eol=lf
+Dockerfile text eol=lf

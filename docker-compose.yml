@@ -1,0 +1,16 @@
+services:
+  voice-agent:
+    build: .
+    image: arabic-ai-voice-agent:latest
+    env_file: .env
+    environment:
+      PORT: "8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persist downloaded faster-whisper weights (only used when STT_PROVIDER=local or as fallback)
+      - hf-cache:/home/app/.cache/huggingface
+    restart: unless-stopped
+
+volumes:
+  hf-cache:

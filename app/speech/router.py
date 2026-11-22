@@ -7,6 +7,8 @@ from .config import (
     VOICES,
     OPTIONAL_MSA_VOICES,
     DEFAULT_VOICE,
+    TTS_PROVIDER,
+    ELEVENLABS_VOICES,
     MIN_AUDIO_BYTES,
     MAX_AUDIO_BYTES,
 )
@@ -23,6 +25,7 @@ router = APIRouter(prefix="/speech", tags=["speech"])
 class TTSRequest(BaseModel):
     text: str
     voice: Optional[str] = DEFAULT_VOICE
+    provider: Optional[str] = None
 
 
 @router.post("/stt")
@@ -60,21 +63,73 @@ async def text_to_speech(req: TTSRequest):
     if not req.text or not req.text.strip():
         raise HTTPException(status_code=400, detail="Text parameter cannot be empty.")
 
-    audio_bytes = await synthesize(req.text, voice=req.voice or DEFAULT_VOICE)
+    audio_bytes = await synthesize(req.text, voice=req.voice or DEFAULT_VOICE, provider=req.provider)
     if not audio_bytes:
         raise HTTPException(status_code=500, detail="TTS synthesis failed to produce audio.")
 
-    return Response(content=audio_bytes, media_type="audio/mpeg")
+    media_type = "audio/wav" if audio_bytes.startswith(b"RIFF") else "audio/mpeg"
+    return Response(content=audio_bytes, media_type=media_type)
 
 
 @router.get("/voices")
-async def get_available_voices():
+async def get_available_voices(provider: Optional[str] = None):
     """
     Returns available Arabic voices for male and female selection.
     """
-    return {
-        "default": DEFAULT_VOICE,
-        "voices": [
+    active_provider = (provider or TTS_PROVIDER).lower().strip()
+    is_eleven = active_provider == "elevenlabs"
+    is_hf = active_provider in ("huggingface", "hf")
+
+    if is_hf:
+        voices = [
+            {
+                "id": "female",
+                "label": "أنثوي — فصحى (TinyVoca)",
+                "voice_id": "tiny-voca-arabic-female",
+                "dialect": "Modern Standard Arabic",
+                "gender": "Female",
+            },
+            {
+                "id": "male",
+                "label": "ذكوري — فصحى (TinyVoca)",
+                "voice_id": "tiny-voca-arabic-male",
+                "dialect": "Modern Standard Arabic",
+                "gender": "Male",
+            },
+        ]
+    elif is_eleven:
+        voices = [
+            {
+                "id": "female",
+                "label": "أنثوي — سارة (إيلفن لابس)",
+                "voice_id": ELEVENLABS_VOICES["female"],
+                "dialect": "Arabic",
+                "gender": "Female",
+            },
+            {
+                "id": "male",
+                "label": "ذكوري — آدم (إيلفن لابس)",
+                "voice_id": ELEVENLABS_VOICES["male"],
+                "dialect": "Arabic",
+                "gender": "Male",
+            },
+            {
+                "id": "female_msa",
+                "label": "أنثوي — سارة (فصحى)",
+                "voice_id": ELEVENLABS_VOICES["female_msa"],
+                "dialect": "Modern Standard Arabic",
+                "gender": "Female",
+            },
+            {
+                "id": "male_msa",
+                "label": "ذكوري — آدم (فصحى)",
+                "voice_id": ELEVENLABS_VOICES["male_msa"],
+                "dialect": "Modern Standard Arabic",
+                "gender": "Male",
+            },
+        ]
+    else:
+        voices = [
             {
                 "id": "female",
                 "label": "أنثوي — سلمى (لهجة مصرية)",
@@ -103,7 +158,13 @@ async def get_available_voices():
                 "dialect": "Modern Standard Arabic",
                 "gender": "Male",
             },
-        ],
+        ]
+
+    return {
+        "provider": active_provider,
+        "default": DEFAULT_VOICE,
+        "providers": ["elevenlabs", "edge", "huggingface"],
+        "voices": voices,
     }
 
 
@@ -112,6 +173,7 @@ async def demo_voice_turn(
     audio: UploadFile = File(...),
     voice: str = Form(DEFAULT_VOICE),
     session_id: str = Form("demo_session"),
+    tts_provider: Optional[str] = Form(None),
 ):
     """
     Executes a complete end-to-end voice turn with the stub LLM agent.
@@ -132,6 +194,7 @@ async def demo_voice_turn(
         voice=voice,
         session_id=session_id,
         agent_fn=stub_agent,
+        tts_provider=tts_provider,
     )
 
     return turn_result

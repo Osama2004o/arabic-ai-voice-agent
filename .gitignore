@@ -233,8 +233,8 @@ recordings/
 *.tmp
 
 # Local model weights / Hugging Face caches
-models/
-hf_cache/
+/models/
+/hf_cache/
 
 # LaTeX build artifacts
 *.aux
@@ -248,3 +248,7 @@ hf_cache/
 *.lof
 *.lot
 
+
+# Local env variants (e.g. .env.render) contain secrets
+.env.*
+!.env.example

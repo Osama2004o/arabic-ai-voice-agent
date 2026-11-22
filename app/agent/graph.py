@@ -20,6 +20,7 @@ from .state import AgentResult, AgentState, PendingAction
 from .text_utils import EMOJI_PATTERN, MARKDOWN_CHARS_PATTERN, MARKDOWN_LINK_PATTERN, MULTIPLE_SPACES, URL_PATTERN
 from .tools import (
     AGENT_TOOLS,
+    action_succeeded,
     is_valid_email,
     record_escalation,
     send_email,
@@ -301,17 +302,27 @@ async def confirmation_gate_node(state: AgentState) -> Dict[str, Any]:
         action = pending["action"]
         args = pending["args"]
         if action == "send_email":
-            await send_email(args["to"], args.get("subject", ""), args.get("body", ""))
-            reply = f"تم إرسال البريد الإلكتروني بنجاح إلى {args['to']}."
+            outcome = await send_email(args["to"], args.get("subject", ""), args.get("body", ""))
+            ok = action_succeeded(outcome)
+            reply = (
+                f"تم إرسال البريد الإلكتروني بنجاح إلى {args['to']}."
+                if ok
+                else "عذراً، حصلت مشكلة أثناء إرسال البريد الإلكتروني. ممكن نحاول تاني بعد شوية."
+            )
         else:
-            await send_telegram(args["message"])
-            reply = "تم إرسال الرسالة عبر تيليجرام بنجاح."
+            outcome = await send_telegram(args["message"])
+            ok = action_succeeded(outcome)
+            reply = (
+                "تم إرسال الرسالة عبر تيليجرام بنجاح."
+                if ok
+                else "عذراً، حصلت مشكلة أثناء إرسال رسالة تيليجرام. ممكن نحاول تاني بعد شوية."
+            )
 
         return {
             "pending_action": None,
             "needs_confirmation": False,
-            "last_action": action,
-            "action_taken": action,
+            "last_action": action if ok else None,
+            "action_taken": action if ok else None,
             "final_response": reply,
             "messages": [AIMessage(content=reply)],
         }

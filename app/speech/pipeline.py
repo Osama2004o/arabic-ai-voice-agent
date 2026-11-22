@@ -19,6 +19,7 @@ async def run_voice_turn(
     voice: str = DEFAULT_VOICE,
     session_id: str = "default_session",
     agent_fn: AgentFn = None,
+    tts_provider: str = None,
 ) -> Dict[str, Any]:
     """
     Executes a complete end-to-end voice turn:
@@ -53,7 +54,7 @@ async def run_voice_turn(
     # Stage 3: TTS Synthesis
     audio_mp3_bytes = b""
     with tracker.stage("tts"):
-        audio_mp3_bytes = await synthesize(reply_text, voice=voice)
+        audio_mp3_bytes = await synthesize(reply_text, voice=voice, provider=tts_provider)
 
     timings = tracker.finish()
 
@@ -66,10 +67,12 @@ async def run_voice_turn(
 
     audio_b64 = base64.b64encode(audio_mp3_bytes).decode("ascii") if audio_mp3_bytes else ""
 
+    audio_mime = "audio/wav" if audio_mp3_bytes.startswith(b"RIFF") else "audio/mpeg"
+
     return {
         "transcript": transcript,
         "reply_text": reply_text,
         "audio_base64": audio_b64,
-        "audio_mime": "audio/mpeg",
+        "audio_mime": audio_mime,
         "timings_ms": timings,
     }
