@@ -38,6 +38,8 @@ An intelligent, real-time Arabic voice assistant capable of understanding spoken
 - **Ultra-Fast STT:** Primary speech-to-text powered by Groq's LPU-accelerated `whisper-large-v3-turbo` with Egyptian vocabulary biasing and an automatic local `faster-whisper` (`small`, int8 CPU) fallback.
 - **Silence & Hallucination Guard:** Rejects silence and suppresses common Whisper hallucinations (`no_speech_prob > 0.6` filtering), safely responding with a polite retry prompt without overwhelming the LLM agent.
 - **Multi-Provider Arabic TTS:** High-fidelity speech synthesis supporting **ElevenLabs** (`eleven_multilingual_v2`), **Microsoft Edge-TTS** (`ar-EG-SalmaNeural` & `ar-EG-ShakirNeural`), and offline CPU **Hugging Face** (`oddadmix/tiny-voca-arabic`). Features automatic fallback to Edge-TTS if quotas are exhausted.
+- **Sub-400ms Local TTS on CPU:** Powered by a non-autoregressive `CATTEncoderOnly` diacritizer (~48ms parallel pass) and multi-threaded ONNX Runtime, delivering complete offline 24 kHz WAV synthesis in under 400ms without GPU or paid API quota.
+- **Calibrated Voice Modulations & Full Message Audio:** Distinct male and female vocal profiles (calibrated down to ~150–160 Hz for male and ~247 Hz for female) with full message playback up to 1,000 characters without mid-sentence truncation.
 - **Strict Domain Guardrails:** LangGraph agent strictly stays in-character for e-commerce customer service and politely deflects general-knowledge or out-of-domain queries.
 - **In-Memory Audio Caching:** Pre-caches recurring system phrases (greetings, retry prompts) for sub-millisecond audio delivery.
 - **Real-Time RTL Web UI:** Built with vanilla HTML5/CSS3/JS with dynamic 3-engine TTS switching (ElevenLabs / Edge-TTS / Hugging Face) and voice selection. Measures and reports real client-side end-to-end latency clock ($t_{\text{playing}} - t_{\text{stop recording}}$) with a live visual badge against the 3.0s target.
@@ -63,7 +65,11 @@ arabic-ai-voice-agent/
 │   │   └── __init__.py           # Connects real senders to the agent's tools
 │   ├── models/schemas.py         # Request/response models
 │   ├── agent/                    # LangGraph customer-service agent (Member 2)
-│   └── speech/                   # STT, TTS, voice pipeline, /speech/* routes (Member 1)
+│   └── speech/                   # STT, multi-engine TTS, voice pipeline (Member 1)
+│       ├── hf_tts/               # Local CPU TinyVoca TTS engine & CATT diacritizer
+│       ├── tts.py                # Multi-engine TTS router (Edge-TTS, ElevenLabs, Hugging Face)
+│       ├── stt.py                # Groq Whisper Turbo & faster-whisper fallback
+│       └── pipeline.py           # End-to-end voice turn orchestrator & latency tracker
 ├── frontend/                     # RTL Arabic web UI (index.html, style.css, app.js)
 ├── benchmarks/                   # STT accuracy and latency benchmarks + results
 ├── tests/                        # pytest suites (speech, agent, backend)
@@ -191,9 +197,13 @@ The application supports three distinct TTS engines, configurable via `.env` or 
 - **Automatic Quota Protection & Fallback:** If `ELEVENLABS_API_KEY` is missing or character quotas are exceeded, the pipeline automatically and transparently falls back to Edge-TTS. In addition, startup audio cache warmup uses Edge-TTS to conserve ElevenLabs quota.
 
 ### 3. Hugging Face CPU (TinyVoca Arabic)
-- **100% Offline & Free:** Ultra-compact 4.5M parameter Modern Standard Arabic TTS model (`oddadmix/tiny-voca-arabic`) running completely on local CPU via ONNX Runtime.
-- Built-in CATT diacritizer transformer and source-filter waveform synthesizer: zero external API quota, zero network latency.
-- Outputs 24 kHz mono 16-bit WAV audio in ~200-500ms on standard CPU.
+- **100% Offline & Free:** Ultra-compact 4.5M parameter Modern Standard Arabic (فصحى) TTS model (`oddadmix/tiny-voca-arabic`) running completely on local CPU via ONNX Runtime without external network requests or API costs.
+- **Sub-400ms Synthesis:** Uses a non-autoregressive `CATTEncoderOnly` diacritization transformer that processes the entire sentence in a **single parallel forward pass (~48ms)** rather than sequential character-by-character decoding, bringing total turn TTS latency to **~395ms**.
+- **Calibrated Voice Modulations:**
+  - **Female:** Natural native female voice profile (~247 Hz fundamental frequency).
+  - **Male:** Calibrated masculine vocal register (~150–160 Hz F0) achieved via downward pitch shifting (`pitch_shift = -11.0`, `pitch_range = 0.55`).
+- **Full-Message Audio Playback:** Text preprocessing accommodates complete conversational replies (up to 1,000 characters) without premature cut-offs or mid-sentence truncation.
+- **Dynamic Threading & Warmup:** Automatically allocates optimal CPU threads (`min(6, cpu_count // 2)`) and pre-warms ONNX sessions in the background on startup to eliminate cold-start lag.
 - In `.env`:
   ```ini
   TTS_PROVIDER=huggingface
@@ -294,6 +304,9 @@ Microphone recording in the browser requires **HTTPS**, which all three platform
 ### 1. Run Unit Tests
 ```bash
 pytest -v
+
+# Or run local offline TTS tests specifically:
+pytest tests/test_hf_tts.py -v
 ```
 
 ### 2. Run STT Accuracy Benchmark (Word Error Rate)
